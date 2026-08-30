@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Book Your Appointment | Serenity Lavish Lashes</title>
+
+    <link rel="stylesheet" href="style.css">
+
+    <link 
+        href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" 
+        rel="stylesheet"
+    >
+</head>
+
+<body>
+
+    <div id="navbar"></div>
+
+    <main class="booking-page">
+        <section class="booking-card">
+            <h1>Book Your Appointment</h1>
+
+            <form class="booking-form">
+                <div class="form-row">
+                    <label for="name">Name</label>
+                    <input type="text" id="name" name="name" placeholder="Your name">
+                </div>
+
+                <div class="form-row">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" placeholder="Your email">
+                </div>
+
+                <div class="form-row">
+                    <label for="phone">Phone</label>
+                    <input type="tel" id="phone" name="phone" placeholder="Your phone number">
+                </div>
+
+                <div class="form-row">
+                    <label for="service">Service</label>
+                    <select id="service" name="service">
+                        <option value="">Select a service</option>
+                        <option value="classic">Classic</option>
+                        <option value="wet">Wet</option>
+                        <option value="hybrid">Hybrid</option>
+                        <option value="volume">Volume</option>
+                        <option value="wispy">Wispy</option>
+                    </select>
+                </div>
+
+                <div class="form-row">
+                    <label for="datetime">Preferred Date/Time</label>
+                    <input type="datetime-local" id="datetime" name="datetime">
+                </div>
+
+                <button type="submit" class="btn booking-btn">Submit</button>
+            </form>
+        </section>
+    </main>
+
+    <footer>
+        <p>
+            © 2026 Serenity Lavish Lashes
+        </p>
+
+        <a 
+            href="https://www.instagram.com/serenity_lavishlashes"
+            target="_blank"
+            rel="noopener noreferrer"
+        >
+            Instagram
+        </a>
+    </footer>
+
+    <script src="script.js"></script>
+
+</body>
+</html>
