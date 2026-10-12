@@ -1,0 +1,768 @@
+.admin-page {
+    width: min(1240px, calc(100% - 40px));
+    margin: 0 auto;
+    padding: 48px 0 72px;
+    color: #21171d;
+}
+
+.admin-header,
+.admin-panel-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+}
+
+.admin-header {
+    margin-bottom: 24px;
+}
+
+.admin-header-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 14px;
+}
+
+.admin-logout-button {
+    min-height: 44px;
+    padding: 9px 14px;
+    border: 1px solid #cc7b9c;
+    border-radius: 9px;
+    background: #fff7fa;
+    color: #81234e;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.admin-logout-button:hover,
+.admin-logout-button:focus-visible {
+    background: #fce3ed;
+}
+
+.admin-header h1 {
+    margin-top: 6px;
+    font-size: clamp(2rem, 4vw, 3rem);
+}
+
+.admin-back-link {
+    color: #9b245c;
+    font-weight: 700;
+}
+
+.admin-security-notice {
+    display: grid;
+    gap: 8px;
+    margin-bottom: 24px;
+    padding: 18px 20px;
+    border: 1px solid #c94b78;
+    border-left: 6px solid #b51f55;
+    border-radius: 12px;
+    background: #fff0f4;
+    line-height: 1.5;
+}
+
+.admin-summary {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 14px;
+    margin-bottom: 24px;
+}
+
+.admin-summary article {
+    display: grid;
+    gap: 8px;
+    padding: 18px;
+    border: 1px solid #edc3d3;
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 6px 18px rgba(45, 17, 31, 0.06);
+}
+
+.admin-summary span {
+    color: #62545b;
+    font-size: 0.9rem;
+}
+
+.admin-summary strong {
+    color: #a52159;
+    font-size: 2rem;
+}
+
+.admin-panel {
+    margin-top: 24px;
+    padding: clamp(18px, 3vw, 28px);
+    border: 1px solid #ebc5d4;
+    border-radius: 18px;
+    background: #fff;
+    box-shadow: 0 8px 24px rgba(45, 17, 31, 0.06);
+}
+
+.admin-panel-heading {
+    margin-bottom: 20px;
+}
+
+.admin-panel-heading h2 {
+    margin-top: 4px;
+    font-size: clamp(1.4rem, 3vw, 2rem);
+}
+
+.admin-date-picker,
+.admin-filter,
+.admin-form-grid label,
+.reschedule-form label {
+    display: grid;
+    gap: 7px;
+    color: #493943;
+    font-weight: 700;
+}
+
+.admin-date-picker input,
+.admin-filter select,
+.admin-form-grid input,
+.admin-form-grid select,
+.reschedule-form input,
+.reschedule-form select {
+    min-height: 42px;
+    padding: 8px 10px;
+    border: 1px solid #d9b5c4;
+    border-radius: 8px;
+    background: white;
+    font: inherit;
+}
+
+.calendar-slots {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    list-style: none;
+}
+
+.calendar-slot {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 6px 12px;
+    padding: 12px;
+    border: 1px solid #b8d8c2;
+    border-radius: 10px;
+    background: #f2fbf4;
+}
+
+.calendar-slot > span {
+    color: #287340;
+    font-size: 0.88rem;
+    font-weight: 700;
+}
+
+.calendar-slot small {
+    grid-column: 1 / -1;
+    color: #51434a;
+}
+
+.calendar-slot:has(small) {
+    border-color: #e6a9c2;
+    background: #fff3f7;
+}
+
+.calendar-slot:has(small) > span {
+    color: #a52159;
+}
+
+.calendar-slot.slot-conflict {
+    border: 2px solid #b42318;
+    background: #fff1f0;
+}
+
+.calendar-slot.slot-break,
+.calendar-slot.slot-blocked {
+    border-color: #d5a3bc;
+    background: #f7eaf0;
+}
+
+.calendar-slot.slot-past {
+    border-color: #ded9dc;
+    background: #f1eff0;
+    color: #777077;
+}
+
+.calendar-slot.appointment-pending {
+    border-color: #d9ad4d;
+    background: #fff7df;
+}
+
+.calendar-slot.appointment-confirmed {
+    border-color: #72b586;
+    background: #eaf8ee;
+}
+
+.calendar-slot.slot-conflict > span,
+.conflict-tag {
+    color: #b42318;
+}
+
+.calendar-controls {
+    display: flex;
+    align-items: end;
+    flex-wrap: wrap;
+    gap: 14px;
+}
+
+.calendar-view-toggle {
+    display: flex;
+    gap: 4px;
+    padding: 4px;
+    border: 1px solid #e4bfd0;
+    border-radius: 10px;
+    background: #fff5f8;
+}
+
+.calendar-view-toggle button {
+    padding: 8px 11px;
+    border: 0;
+    border-radius: 7px;
+    background: transparent;
+    color: #742044;
+    cursor: pointer;
+    font: inherit;
+}
+
+.calendar-view-toggle button.calendar-view-active {
+    background: #171017;
+    color: #ffc0d8;
+}
+
+.calendar-date-grid {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 7px;
+    margin-bottom: 22px;
+}
+
+.calendar-date-card {
+    display: grid;
+    align-content: start;
+    gap: 8px;
+    min-height: 72px;
+    padding: 10px;
+    border: 1px solid #e6d3dc;
+    border-radius: 9px;
+    background: #fff;
+    color: #3c2d35;
+    cursor: pointer;
+    text-align: left;
+}
+
+.calendar-date-card span {
+    color: #76656e;
+    font-size: 0.78rem;
+}
+
+.calendar-date-card.selected-date {
+    border-color: #d53e7b;
+    box-shadow: inset 0 0 0 1px #d53e7b;
+    background: #fff1f6;
+}
+
+.calendar-date-card.other-month {
+    opacity: 0.48;
+}
+
+.calendar-month .calendar-date-card {
+    min-height: 78px;
+}
+
+.calendar-selected-heading {
+    margin: 12px 0 16px;
+    font-size: 1.2rem;
+}
+
+.schedule-panel h3 {
+    margin: 22px 0 8px;
+    color: #402d37;
+}
+
+.schedule-panel .admin-panel-heading h2 {
+    margin-top: 4px;
+}
+
+.schedule-help {
+    margin-bottom: 14px;
+    color: #6b5962;
+    line-height: 1.5;
+}
+
+.schedule-interval {
+    display: grid;
+    gap: 7px;
+    color: #493943;
+    font-weight: 700;
+}
+
+.schedule-interval select {
+    min-height: 42px;
+    padding: 8px 10px;
+    border: 1px solid #d9b5c4;
+    border-radius: 8px;
+    background: white;
+    font: inherit;
+}
+
+.schedule-day-list,
+.service-settings-list {
+    display: grid;
+    gap: 10px;
+}
+
+.schedule-day,
+.service-setting {
+    display: grid;
+    grid-template-columns: minmax(100px, 0.7fr) repeat(2, minmax(120px, 1fr)) minmax(220px, 1.7fr);
+    align-items: start;
+    gap: 12px;
+    min-width: 0;
+    padding: 14px;
+    border: 1px solid #ead1dc;
+    border-radius: 12px;
+    background: #fffafd;
+}
+
+.schedule-day legend,
+.service-setting legend {
+    padding: 0 6px;
+    color: #772449;
+    font-weight: 800;
+}
+
+.schedule-day > label:not(.schedule-open-toggle),
+.schedule-break-row label,
+.service-setting > label:not(.schedule-open-toggle),
+.date-rule-form label {
+    display: grid;
+    gap: 6px;
+    color: #493943;
+    font-size: 0.9rem;
+    font-weight: 700;
+}
+
+.schedule-day input[type="time"],
+.service-setting input,
+.date-rule-form input,
+.date-rule-form select,
+.schedule-break-row input {
+    width: 100%;
+    min-height: 39px;
+    padding: 7px 9px;
+    border: 1px solid #d9b5c4;
+    border-radius: 8px;
+    background: white;
+    font: inherit;
+}
+
+.schedule-open-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 39px;
+    color: #493943;
+    font-weight: 700;
+}
+
+.schedule-open-toggle input {
+    accent-color: #c22b69;
+}
+
+.schedule-breaks {
+    display: grid;
+    gap: 8px;
+    padding: 10px;
+    border-radius: 9px;
+    background: #fff1f6;
+}
+
+.schedule-break-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    align-items: end;
+    gap: 8px;
+}
+
+.service-settings-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.service-setting {
+    grid-template-columns: minmax(100px, 0.7fr) repeat(2, minmax(100px, 1fr));
+}
+
+.schedule-subheading {
+    margin-top: 30px !important;
+}
+
+.date-rule-form {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: end;
+    gap: 12px;
+    padding: 14px;
+    border: 1px solid #ead1dc;
+    border-radius: 12px;
+    background: #fffafd;
+}
+
+.date-rule-form .small-button {
+    justify-self: start;
+}
+
+.date-rule-list {
+    display: grid;
+    gap: 8px;
+    margin-top: 14px;
+    list-style: none;
+}
+
+.date-rule-list li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: #fff3f7;
+}
+
+.save-schedule-button {
+    margin-top: 22px;
+}
+
+.calendar-note {
+    margin-top: 16px;
+    color: #67565f;
+    line-height: 1.6;
+}
+
+.admin-table-wrap {
+    overflow-x: auto;
+}
+
+.appointments-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.appointments-table th,
+.appointments-table td {
+    padding: 13px 10px;
+    border-bottom: 1px solid #f0dce4;
+    vertical-align: top;
+}
+
+.appointments-table th {
+    background: #fff5f8;
+    color: #48343e;
+    white-space: nowrap;
+}
+
+.appointments-table tr.has-conflict {
+    background: #fff1f0;
+}
+
+.sample-tag,
+.source-tag,
+.conflict-tag {
+    display: inline-block;
+    margin: 5px 5px 0 0;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+}
+
+.sample-tag {
+    color: #8d4d00;
+}
+
+.source-tag {
+    color: #5a3c99;
+}
+
+.status-tag {
+    display: inline-block;
+    padding: 4px 9px;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: capitalize;
+}
+
+.status-pending {
+    background: #fff0c2;
+    color: #704a00;
+}
+
+.status-confirmed {
+    background: #dcf5e3;
+    color: #1c6533;
+}
+
+.status-cancelled {
+    background: #f1e8ec;
+    color: #655761;
+}
+
+.appointment-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    min-width: 210px;
+}
+
+.small-button {
+    padding: 6px 9px;
+    border: 1px solid #db91b0;
+    border-radius: 7px;
+    background: #fff7fa;
+    color: #742044;
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.83rem;
+}
+
+.small-button:hover {
+    background: #fce3ed;
+}
+
+.danger-button {
+    border-color: #d68a8a;
+    color: #8e2020;
+}
+
+.appointment-details,
+.reschedule-form {
+    display: grid;
+    gap: 8px;
+    margin-top: 10px;
+    padding: 12px;
+    border-radius: 9px;
+    background: #fff7fa;
+    overflow-wrap: anywhere;
+}
+
+.reschedule-form {
+    grid-template-columns: repeat(2, minmax(130px, 1fr));
+}
+
+.reschedule-form button {
+    align-self: end;
+    justify-self: start;
+}
+
+.manual-appointment {
+    margin-top: 24px;
+    border-top: 1px solid #efd9e2;
+    padding-top: 18px;
+}
+
+.manual-appointment summary {
+    color: #81234e;
+    cursor: pointer;
+    font-weight: 700;
+}
+
+.manual-appointment > p {
+    margin: 12px 0;
+    color: #62545b;
+}
+
+.admin-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    margin-top: 16px;
+}
+
+.admin-notes-field {
+    grid-column: 1 / -1;
+}
+
+.admin-form-grid .booking-btn {
+    justify-self: start;
+}
+
+.demo-notice {
+    margin-bottom: 20px;
+    padding: 14px;
+    border-left: 4px solid #b51f55;
+    background: #fff0f4;
+    color: #633649;
+    line-height: 1.5;
+}
+
+.form-message {
+    margin: 16px 0;
+    padding: 14px;
+    border-radius: 10px;
+    line-height: 1.5;
+}
+
+.form-error {
+    border: 1px solid #d58c8c;
+    background: #fff1f0;
+    color: #8c2525;
+}
+
+.form-success {
+    border: 1px solid #9bc6a7;
+    background: #effaf1;
+    color: #245a32;
+}
+
+.form-success p + p,
+.form-success a {
+    display: inline-block;
+    margin-top: 8px;
+}
+
+.form-success a {
+    color: #8b1d4d;
+    font-weight: 700;
+}
+
+.booking-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+}
+
+.admin-account-list {
+    display: grid;
+    gap: 12px;
+}
+
+.admin-account-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 14px;
+    border: 1px solid #ead1dc;
+    border-radius: 12px;
+    background: #fffafd;
+}
+
+.admin-account-card > div,
+.admin-account-card label {
+    display: grid;
+    gap: 6px;
+    overflow-wrap: anywhere;
+}
+
+.admin-account-card > div span,
+.admin-account-card small {
+    color: #62545b;
+}
+
+.admin-account-card label {
+    min-width: min(220px, 45%);
+    color: #493943;
+    font-weight: 700;
+}
+
+.admin-account-card select {
+    min-height: 44px;
+    padding: 8px 10px;
+    border: 1px solid #d9b5c4;
+    border-radius: 8px;
+    background: white;
+    font: inherit;
+}
+
+.admin-account-card select:disabled {
+    background: #f1e8ec;
+    color: #655761;
+}
+
+@media (max-width: 760px) {
+    .admin-page {
+        width: min(100% - 24px, 600px);
+        padding-top: 30px;
+    }
+
+    .admin-header,
+    .admin-panel-heading {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .admin-header-actions {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .admin-account-card {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .admin-account-card label {
+        min-width: 0;
+    }
+
+    .admin-summary {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .calendar-slots {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .calendar-date-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .schedule-day,
+    .service-setting {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .schedule-breaks {
+        grid-column: 1 / -1;
+    }
+
+    .service-settings-list {
+        grid-template-columns: 1fr;
+    }
+
+    .date-rule-form {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .appointments-table {
+        min-width: 760px;
+    }
+}
+
+@media (max-width: 420px) {
+    .calendar-slots,
+    .admin-form-grid,
+    .reschedule-form {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-notes-field {
+        grid-column: auto;
+    }
+
+    .calendar-date-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .schedule-day,
+    .service-setting,
+    .date-rule-form {
+        grid-template-columns: 1fr;
+    }
+
+    .schedule-breaks {
+        grid-column: auto;
+    }
+}

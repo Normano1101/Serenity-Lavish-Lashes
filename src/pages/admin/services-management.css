@@ -1,0 +1,165 @@
+.service-management-list {
+    display: grid;
+    gap: 18px;
+}
+
+.service-management-card {
+    display: grid;
+    gap: 18px;
+    padding: 20px;
+    border: 1px solid #edc3d3;
+    border-radius: 14px;
+    background: #fffafd;
+}
+
+.service-management-card-inactive {
+    border-color: #d5cbd0;
+    background: #f8f6f7;
+}
+
+.service-management-card-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+}
+
+.service-management-card-heading h3 {
+    margin: 0;
+    color: #81234e;
+    font-size: 1.3rem;
+}
+
+.service-active-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #493943;
+    font-weight: 700;
+}
+
+.service-management-fields {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.service-management-fields label,
+.service-image-upload {
+    display: grid;
+    gap: 7px;
+    color: #493943;
+    font-weight: 700;
+}
+
+.service-management-fields input,
+.service-management-fields textarea,
+.service-image-upload input {
+    width: 100%;
+    min-height: 42px;
+    padding: 8px 10px;
+    border: 1px solid #d9b5c4;
+    border-radius: 8px;
+    background: #fff;
+    color: #21171d;
+    font: inherit;
+}
+
+.service-management-fields textarea {
+    resize: vertical;
+}
+
+.service-description-field {
+    grid-column: 1 / -1;
+}
+
+.service-images-field {
+    display: grid;
+    gap: 12px;
+    min-width: 0;
+    margin: 0;
+    padding: 14px;
+    border: 1px solid #e9d4dd;
+    border-radius: 10px;
+}
+
+.service-images-field legend {
+    padding: 0 6px;
+    color: #493943;
+    font-weight: 700;
+}
+
+.service-image-library {
+    display: grid;
+    gap: 8px;
+}
+
+.service-image-library p {
+    margin: 0;
+    color: #493943;
+    font-weight: 700;
+}
+
+.service-image-library-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 14px;
+}
+
+.service-image-library-options label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #493943;
+    font-size: 0.9rem;
+}
+
+.service-image-previews {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.service-image-preview {
+    display: grid;
+    width: min(150px, 100%);
+    gap: 8px;
+}
+
+.service-image-preview img {
+    width: 100%;
+    height: 150px;
+    border-radius: 8px;
+    background: #f8f2f2;
+    object-fit: cover;
+}
+
+.service-save-button {
+    justify-self: start;
+}
+
+.service-addon-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+
+@media (max-width: 640px) {
+    .service-management-card {
+        padding: 14px;
+    }
+
+    .service-management-card-heading {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .service-management-fields {
+        grid-template-columns: 1fr;
+    }
+
+    .service-description-field {
+        grid-column: auto;
+    }
+}

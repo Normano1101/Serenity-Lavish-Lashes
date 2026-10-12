@@ -1,12 +1,44 @@
+@import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@500;600;700&display=swap');
+
 /* ===== NAVBAR ===== */
 .navbar {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 15px 30px;
-    background-color: black;
+
+    /* Glossy black with pink glitter */
+    background-color: #080808;
+
+    background-image:
+        /* Fine pink glitter */
+        radial-gradient(circle, rgba(255, 105, 180, 0.45) 0.5px, transparent 1px),
+        radial-gradient(circle, rgba(255, 20, 147, 0.30) 0.5px, transparent 1px),
+
+        /* Glossy black finish */
+        linear-gradient(
+            180deg,
+            #292929 0%,
+            #171717 25%,
+            #080808 55%,
+            #000000 100%
+        );
+
+    background-size:
+        19px 23px,
+        29px 31px,
+        100% 100%;
+
+    background-position:
+        0 0,
+        10px 15px,
+        0 0;
+
     position: relative;
     z-index: 10;
+
+    border-bottom: 1px solid #ff69b4;
+    box-shadow: 0 2px 8px rgba(255, 105, 180, 0.15);
 }
 
 /* ===== LOGO ===== */
@@ -36,7 +68,9 @@
     text-decoration: none;
     color: pink;
     background: transparent;
-    font-size: 16px;
+    font-size: 18px;
+    font-family: 'Dancing Script', cursive;
+    font-weight: 600;
     padding: 10px 15px;
     border: 2px solid pink;
     border-radius: 10px;
