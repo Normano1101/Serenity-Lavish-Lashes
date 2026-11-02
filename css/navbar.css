@@ -1,6 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@500;600;700&display=swap');
 
-/* ===== NAVBAR ===== */
+/* Site navigation, branding, links, and the expandable More menu. */
 .navbar {
     display: flex;
     justify-content: space-between;

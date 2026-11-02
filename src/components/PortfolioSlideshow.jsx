@@ -3,9 +3,11 @@ import portfolioPhotos from '../data/portfolioPhotos.js';
 import PortfolioLightbox from './PortfolioLightbox.jsx';
 import PortfolioThumbnails from './PortfolioThumbnails.jsx';
 
+// Keep autoplay and thumbnail-pause timing consistent across effects.
 const AUTOPLAY_DELAY = 5000;
 const THUMBNAIL_PAUSE = 10000;
 
+// Coordinate slideshow navigation, autoplay, thumbnail selection, and the lightbox.
 export default function PortfolioSlideshow() {
     const [selectedIndex, setSelectedIndex] = useState(0);
     const [displayedIndex, setDisplayedIndex] = useState(0);
@@ -22,6 +24,7 @@ export default function PortfolioSlideshow() {
     const suppressClick = useRef(false);
     const suppressClickTimer = useRef(null);
 
+    // Normalize any requested index so navigation wraps through the photo list.
     const showPhoto = useCallback((index) => {
         setSelectedIndex((index + portfolioPhotos.length) % portfolioPhotos.length);
     }, []);
@@ -31,6 +34,7 @@ export default function PortfolioSlideshow() {
         showPhoto(selectedIndex + direction);
     }, [selectedIndex, showPhoto]);
 
+    // Delay the foreground image swap so its fade transition can run.
     useEffect(() => {
         if (selectedIndex === displayedIndex) return undefined;
         setIsChanging(true);
@@ -41,6 +45,7 @@ export default function PortfolioSlideshow() {
         return () => window.clearTimeout(timer);
     }, [selectedIndex, displayedIndex]);
 
+    // Cross-fade two background layers without flashing the viewer.
     useEffect(() => {
         setBackground((current) => {
             const nextBackground = 1 - current.active;
@@ -50,12 +55,14 @@ export default function PortfolioSlideshow() {
         });
     }, [selectedIndex]);
 
+    // Stop autoplay timing while the visitor has switched to another browser tab.
     useEffect(() => {
         const updateVisibility = () => setPageVisible(!document.hidden);
         document.addEventListener('visibilitychange', updateVisibility);
         return () => document.removeEventListener('visibilitychange', updateVisibility);
     }, []);
 
+    // Autoplay only when the lightbox is closed and the page is visible.
     useEffect(() => {
         if (lightboxOpen || !pageVisible) return undefined;
         const delay = Math.max(AUTOPLAY_DELAY, pauseUntil - Date.now());
@@ -66,12 +73,14 @@ export default function PortfolioSlideshow() {
         return () => window.clearTimeout(timer);
     }, [lightboxOpen, pageVisible, pauseUntil, selectedIndex, showPhoto]);
 
+    // Return keyboard focus to the photo button after closing the dialog.
     const closeLightbox = useCallback(() => {
         setLightboxOpen(false);
         featuredButtonRef.current?.focus();
     }, []);
 
     useEffect(() => () => window.clearTimeout(suppressClickTimer.current), []);
+    // Pause automatic changes briefly after a visitor chooses a thumbnail.
     const chooseThumbnail = (index) => {
         setPauseUntil(Date.now() + THUMBNAIL_PAUSE);
         showPhoto(index);
@@ -81,6 +90,7 @@ export default function PortfolioSlideshow() {
         swipeStartX.current = event.changedTouches[0]?.clientX ?? null;
     };
 
+    // Navigate on a swipe and suppress the synthetic tap that follows it.
     const handleTouchEnd = (event) => {
         if (swipeStartX.current === null) return;
         const distance = event.changedTouches[0].clientX - swipeStartX.current;

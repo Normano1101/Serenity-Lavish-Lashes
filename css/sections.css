@@ -1,4 +1,4 @@
-/* ===== WELCOME / SECTIONS ===== */
+/* ===== HOME AND ABOUT ===== */
 .welcome {
     max-width: 900px;
     margin: 40px auto;
@@ -50,6 +50,7 @@
     text-align: center;
 }
 
+/* ===== PUBLIC PRICING AND ADD-ONS ===== */
 .pricing-page {
     max-width: 1480px;
     margin: 0 auto;
@@ -292,6 +293,7 @@ footer {
     text-align: center;
 }
 
+/* ===== CUSTOMER BOOKING FORM AND AVAILABILITY CALENDAR ===== */
 .booking-page {
     display: flex;
     justify-content: center;
@@ -428,6 +430,17 @@ footer {
     border: 1px solid #efcfdb;
     border-radius: 14px;
     background: #fff;
+}
+
+.booking-calendar-prompt {
+    margin: 0 0 14px;
+    padding: 10px 12px;
+    border-left: 3px solid #b51f55;
+    border-radius: 6px;
+    background: #fff0f5;
+    color: #633649;
+    font-size: 0.9rem;
+    line-height: 1.45;
 }
 
 .booking-calendar-header {
@@ -612,6 +625,7 @@ footer {
     opacity: 0.55;
 }
 
+/* ===== ADMIN SIGN-IN ===== */
 .admin-auth-page {
     display: grid;
     min-height: 62vh;
@@ -671,6 +685,7 @@ footer {
     outline-offset: 1px;
 }
 
+/* Stack page layouts and enlarge small-screen booking controls. */
 @media (max-width: 768px) {
     .booking-page {
         padding: 24px 12px 48px;
@@ -706,6 +721,7 @@ footer {
     }
 }
 
+/* ===== REVIEWS INTRODUCTION ===== */
 .reviews-page {
     max-width: 1200px;
     margin: 0 auto;
@@ -735,6 +751,7 @@ footer {
     font-style: italic;
 }
 
+/* Keep about and pricing layouts readable on narrow screens. */
 @media (max-width: 768px) {
     .about-page {
         grid-template-columns: 1fr;

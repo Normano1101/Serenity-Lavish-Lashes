@@ -1,3 +1,4 @@
+/* Dashboard heading, summary cards, and reusable admin panels. */
 .admin-page {
     width: min(1240px, calc(100% - 40px));
     margin: 0 auto;
@@ -132,6 +133,7 @@
     font: inherit;
 }
 
+/* Appointment calendar controls, date cards, and availability slots. */
 .calendar-slots {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -286,6 +288,7 @@
     margin-top: 4px;
 }
 
+/* Weekly business hours, service durations, and date-rule editor. */
 .schedule-help {
     margin-bottom: 14px;
     color: #6b5962;
@@ -399,9 +402,10 @@
     margin-top: 30px !important;
 }
 
+/* Date-specific closures, custom hours, and blocked-time controls. */
 .date-rule-form {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     align-items: end;
     gap: 12px;
     padding: 14px;
@@ -410,25 +414,201 @@
     background: #fffafd;
 }
 
-.date-rule-form .small-button {
-    justify-self: start;
+.schedule-calendar-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(300px, 0.9fr);
+    align-items: start;
+    gap: 20px;
+}
+
+.schedule-month-calendar,
+.schedule-date-editor {
+    min-width: 0;
+    padding: 16px;
+    border: 1px solid #ead1dc;
+    border-radius: 14px;
+    background: #fffafd;
+}
+
+.schedule-calendar-heading {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 14px;
+}
+
+.schedule-calendar-heading h4 {
+    flex: 1;
+    margin: 0;
+    color: #402d37;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.schedule-calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 6px;
+}
+
+.schedule-calendar-weekdays {
+    margin-bottom: 6px;
+    color: #6b5962;
+    font-size: 0.78rem;
+    font-weight: 800;
+    text-align: center;
+}
+
+.schedule-calendar-weekdays span {
+    padding: 5px 0;
+}
+
+.schedule-calendar-day {
+    position: relative;
+    display: grid;
+    place-items: center;
+    min-width: 0;
+    min-height: 48px;
+    border: 1px solid transparent;
+    border-radius: 9px;
+    background: #fff;
+    color: #30242a;
+    font: inherit;
+    cursor: pointer;
+}
+
+.schedule-calendar-day:hover,
+.schedule-calendar-day:focus-visible {
+    border-color: #cc7b9c;
+    outline: none;
+}
+
+.schedule-calendar-day.is-outside-month {
+    color: #a89aa1;
+    background: #faf6f8;
+}
+
+.schedule-calendar-day.is-today {
+    box-shadow: inset 0 0 0 1px #a52159;
+    font-weight: 800;
+}
+
+.schedule-calendar-day.is-selected {
+    border-color: #c22b69;
+    background: #f9dce8;
+    color: #72183f;
+    font-weight: 800;
+}
+
+.schedule-rule-dot,
+.legend-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #6d9f76;
+}
+
+.schedule-rule-dot {
+    position: absolute;
+    right: 6px;
+    bottom: 6px;
+}
+
+.schedule-rule-dot.is-closed,
+.legend-dot.is-closed {
+    background: #c74359;
+}
+
+.schedule-rule-dot.is-block,
+.legend-dot.is-block {
+    background: #e58a27;
+}
+
+.schedule-rule-dot.is-hours,
+.legend-dot.is-hours {
+    background: #3986c5;
+}
+
+.legend-dot.is-selected {
+    background: #c22b69;
+}
+
+.schedule-calendar-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 9px 14px;
+    margin-top: 14px;
+    color: #5d4d55;
+    font-size: 0.8rem;
+}
+
+.schedule-calendar-legend span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.schedule-selection-actions,
+.date-rule-item,
+.date-rule-actions,
+.schedule-rule-buttons {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 9px;
+}
+
+.schedule-selection-actions {
+    margin-bottom: 12px;
+    color: #402d37;
+}
+
+.schedule-selection-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.schedule-selection-actions .is-active {
+    background: #f9dce8;
+    box-shadow: inset 0 0 0 1px #c22b69;
 }
 
 .date-rule-list {
     display: grid;
     gap: 8px;
-    margin-top: 14px;
-    list-style: none;
+    margin: 12px 0;
 }
 
-.date-rule-list li {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
+.date-rule-list h4 {
+    margin: 0;
+    color: #772449;
+}
+
+.date-rule-item {
     padding: 10px 12px;
     border-radius: 8px;
     background: #fff3f7;
+}
+
+.date-rule-item > span {
+    flex: 1 1 180px;
+    overflow-wrap: anywhere;
+}
+
+.schedule-rule-buttons {
+    justify-content: flex-start;
+    margin-top: 12px;
+}
+
+.schedule-rule-buttons .booking-btn {
+    margin: 0;
+}
+
+.legend-dot.is-available {
+    background: #6d9f76;
 }
 
 .save-schedule-button {
@@ -441,6 +621,7 @@
     line-height: 1.6;
 }
 
+/* Appointment table, status badges, and per-appointment actions. */
 .admin-table-wrap {
     overflow-x: auto;
 }
@@ -633,6 +814,7 @@
     opacity: 0.55;
 }
 
+/* Super-admin account and role-management cards. */
 .admin-account-list {
     display: grid;
     gap: 12px;
@@ -681,6 +863,7 @@
     color: #655761;
 }
 
+/* Collapse dashboard layouts for tablet and phone widths. */
 @media (max-width: 760px) {
     .admin-page {
         width: min(100% - 24px, 600px);
@@ -736,6 +919,10 @@
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
+    .schedule-calendar-layout {
+        grid-template-columns: 1fr;
+    }
+
     .appointments-table {
         min-width: 760px;
     }
@@ -760,6 +947,14 @@
     .service-setting,
     .date-rule-form {
         grid-template-columns: 1fr;
+    }
+
+    .schedule-calendar-heading {
+        gap: 5px;
+    }
+
+    .schedule-calendar-day {
+        min-height: 42px;
     }
 
     .schedule-breaks {

@@ -1,3 +1,4 @@
+/* Load global reset, navigation, hero, portfolio, and page-section styles. */
 @import url('css/reset.css');
 @import url('css/navbar.css');
 @import url('css/hero.css');

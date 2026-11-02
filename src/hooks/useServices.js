@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { isSupabaseConfigured, supabase } from '../lib/supabase.js';
 import { INITIAL_LASH_CATALOG, SERVICE_COLUMNS } from '../data/services.js';
 
+// Recognize setup/schema errors that allow the public starter catalog fallback.
 function canUseInitialCatalog(queryError) {
     return queryError.code === '42703'
         || queryError.code === 'PGRST204'
@@ -9,6 +10,7 @@ function canUseInitialCatalog(queryError) {
         || /column .* does not exist|schema cache/i.test(queryError.message);
 }
 
+// Expand each bundled style into its full-set and fill records.
 function getInitialServices() {
     return INITIAL_LASH_CATALOG.flatMap(({ fill, ...fullService }) => [
         fullService,
@@ -16,12 +18,14 @@ function getInitialServices() {
     ]);
 }
 
+// Load active public services or include inactive rows for admin tools.
 export default function useServices({ includeInactive = false } = {}) {
     const [services, setServices] = useState([]);
     const [loading, setLoading] = useState(isSupabaseConfigured);
     const [error, setError] = useState('');
     const [usingInitialCatalog, setUsingInitialCatalog] = useState(false);
 
+    // Fetch services and report loading, setup fallback, or query failure.
     const refresh = useCallback(async ({ showLoading = false } = {}) => {
         if (!supabase) {
             setServices(includeInactive ? [] : getInitialServices());
@@ -56,6 +60,7 @@ export default function useServices({ includeInactive = false } = {}) {
         }
     }, [includeInactive]);
 
+    // Refresh on mount and listen for changes to the shared catalog.
     useEffect(() => {
         refresh({ showLoading: true });
         if (!supabase) return undefined;

@@ -1,5 +1,7 @@
+-- Create admin roles, shared booking data, row-level policies, and safe public booking RPCs.
 create extension if not exists btree_gist with schema extensions;
 
+-- A profile stores each auth user's business role; new accounts start unassigned.
 create table public.profiles (
     id uuid primary key references auth.users (id) on delete cascade,
     email text unique,
@@ -10,6 +12,7 @@ create table public.profiles (
     updated_at timestamptz not null default now()
 );
 
+-- Read the signed-in user's role through narrowly scoped security-definer helpers.
 create or replace function public.current_admin_role()
 returns text
 language sql
@@ -49,6 +52,7 @@ grant execute on function public.current_admin_role() to authenticated;
 grant execute on function public.is_business_admin() to authenticated;
 grant execute on function public.is_super_admin() to authenticated;
 
+-- Create an unprivileged profile automatically for each new auth account.
 create or replace function public.create_profile_for_auth_user()
 returns trigger
 language plpgsql
@@ -78,6 +82,7 @@ select id, email, coalesce(raw_user_meta_data ->> 'display_name', ''), 'unassign
 from auth.users
 on conflict (id) do nothing;
 
+-- Let existing super admins change other users' roles without removing the last super admin.
 create or replace function public.manage_admin_role(target_user_id uuid, new_role text)
 returns void
 language plpgsql
@@ -115,6 +120,7 @@ $$;
 revoke all on function public.manage_admin_role(uuid, text) from public, anon;
 grant execute on function public.manage_admin_role(uuid, text) to authenticated;
 
+-- Store the business timezone and recurring schedule used to calculate availability.
 create table public.booking_settings (
     id boolean primary key default true check (id),
     booking_interval_minutes integer not null default 30
@@ -183,6 +189,7 @@ create table public.date_rules (
 );
 create index date_rules_date_idx on public.date_rules (rule_date, created_at);
 
+-- Store private customer bookings and prevent overlapping active appointment ranges.
 create table public.appointments (
     id uuid primary key default gen_random_uuid(),
     customer_name text not null check (length(trim(customer_name)) between 1 and 160),
@@ -221,6 +228,7 @@ insert into storage.buckets (id, name, public)
 values ('serenity-portfolio', 'serenity-portfolio', false)
 on conflict (id) do nothing;
 
+-- Require row-level policies for every business table before granting access.
 alter table public.profiles enable row level security;
 alter table public.booking_settings enable row level security;
 alter table public.weekly_schedule enable row level security;
@@ -247,6 +255,7 @@ grant insert, update, delete on public.appointments to authenticated;
 grant select on storage.objects to anon, authenticated;
 grant insert, update, delete on storage.objects to authenticated;
 
+-- Public reads expose schedule/catalog data only; customer records stay admin-only.
 create policy "Users read own profile; super admins read profiles"
 on public.profiles for select to authenticated
 using (id = (select auth.uid()) or public.is_super_admin());
@@ -311,6 +320,7 @@ with check (bucket_id = 'serenity-portfolio' and public.is_business_admin());
 create policy "Admins delete portfolio images" on storage.objects
 for delete to authenticated using (bucket_id = 'serenity-portfolio' and public.is_business_admin());
 
+-- Return open date/time slots without exposing appointment or customer records.
 create or replace function public.get_public_availability(
     p_start_date date,
     p_end_date date,
@@ -408,6 +418,7 @@ $$;
 revoke all on function public.get_public_availability(date, date, uuid) from public;
 grant execute on function public.get_public_availability(date, date, uuid) to anon, authenticated;
 
+-- Validate customer input and current availability before creating a pending booking.
 create or replace function public.create_public_appointment(
     p_customer_name text,
     p_customer_email text,

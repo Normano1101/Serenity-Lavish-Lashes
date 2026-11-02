@@ -1,4 +1,4 @@
-/* ===== RESET ===== */
+/* Remove browser defaults and establish the site's global box and text styles. */
 * {
     margin: 0;
     padding: 0;

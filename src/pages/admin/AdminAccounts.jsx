@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '../../auth/AuthProvider.jsx';
 import { supabase } from '../../lib/supabase.js';
 
+// Let super admins review profiles and assign roles through the protected database RPC.
 export default function AdminAccounts() {
     const { user } = useAuth();
     const [accounts, setAccounts] = useState([]);
@@ -10,6 +11,7 @@ export default function AdminAccounts() {
     const [message, setMessage] = useState('');
     const [error, setError] = useState('');
 
+    // Fetch profiles in email order for the role-management list.
     const loadAccounts = async () => {
         setLoading(true);
         setError('');
@@ -26,6 +28,7 @@ export default function AdminAccounts() {
         loadAccounts();
     }, []);
 
+    // Save a role change and reload the authoritative profile list.
     const changeRole = async (account, role) => {
         setSavingId(account.id);
         setError('');

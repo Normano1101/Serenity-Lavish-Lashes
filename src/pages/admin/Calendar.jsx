@@ -9,12 +9,14 @@ import {
     getCalendarSlots
 } from '../../data/appointments.js';
 
+// Add calendar days without changing the displayed date's local time zone.
 function addDays(dateKey, count) {
     const date = new Date(`${dateKey}T12:00:00`);
     date.setDate(date.getDate() + count);
     return formatDateKey(date);
 }
 
+// Convert any date to the Monday that starts its calendar week.
 function getWeekStart(dateKey) {
     const date = new Date(`${dateKey}T12:00:00`);
     const mondayOffset = (date.getDay() + 6) % 7;
@@ -22,6 +24,7 @@ function getWeekStart(dateKey) {
     return formatDateKey(date);
 }
 
+// Return the six Monday-first weeks shown in the month calendar.
 function getMonthDates(dateKey) {
     const selected = new Date(`${dateKey}T12:00:00`);
     const first = new Date(selected.getFullYear(), selected.getMonth(), 1, 12);
@@ -35,8 +38,9 @@ function getMonthDates(dateKey) {
     });
 }
 
-export default function Calendar({ appointments, selectedDate, onDateChange }) {
-    const [view, setView] = useState('day');
+// Display day/week/month appointment counts and the selected day's availability.
+export default function Calendar({ appointments, selectedDate, onDateChange, todayDateKey }) {
+    const [view, setView] = useState('week');
     const [, setSettingsVersion] = useState(0);
     const settings = getBookingSettings();
     const conflicts = findConflicts(appointments, settings);
@@ -44,6 +48,7 @@ export default function Calendar({ appointments, selectedDate, onDateChange }) {
     const dayAppointments = appointments.filter((appointment) => appointment.date === selectedDate);
     const daySlots = getCalendarSlots(appointments, selectedDate, settings);
 
+    // Re-read local demo schedule settings when another admin panel saves them.
     useEffect(() => {
         const refresh = () => setSettingsVersion((version) => version + 1);
         window.addEventListener('serenity-demo-appointments-changed', refresh);
@@ -54,6 +59,7 @@ export default function Calendar({ appointments, selectedDate, onDateChange }) {
         };
     }, []);
 
+    // Select the date range that matches the current calendar view.
     const visibleDates = view === 'day'
         ? [selectedDate]
         : view === 'week'
@@ -85,7 +91,7 @@ export default function Calendar({ appointments, selectedDate, onDateChange }) {
                         Choose a date
                         <input
                             type="date"
-                            min={formatDateKey(new Date())}
+                            min={todayDateKey ?? formatDateKey(new Date())}
                             value={selectedDate}
                             onChange={(event) => onDateChange(event.target.value)}
                         />

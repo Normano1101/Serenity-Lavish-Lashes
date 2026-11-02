@@ -1,6 +1,7 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from './AuthProvider.jsx';
 
+// Protect admin pages and explain whether access is loading, denied, or allowed.
 export default function AdminRoute({ children, requiredRole }) {
     const { configured, loading, user, profile, error } = useAuth();
     const location = useLocation();

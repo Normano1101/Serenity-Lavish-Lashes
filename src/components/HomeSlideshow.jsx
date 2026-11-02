@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import homePhotos from '../data/homePhotos.js';
 
+// Rotate through the home-page photos and clear the timer when this view closes.
 export default function HomeSlideshow() {
     const [activeIndex, setActiveIndex] = useState(0);
 

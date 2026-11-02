@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 
+// Render the site links and keep the More menu closed after navigation or outside clicks.
 export default function Navbar() {
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const dropdownRef = useRef(null);

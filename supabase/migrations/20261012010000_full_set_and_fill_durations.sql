@@ -1,3 +1,4 @@
+-- Seed inactive full-set and fill rows so admins can set durations before publishing.
 insert into public.services (name, duration_minutes, is_active) values
     ('Classic Full Set', 210, true), ('Classic Fill', 150, true),
     ('Wet Full Set', 210, true), ('Wet Fill', 150, true),

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import useServiceAddons from '../../hooks/useServiceAddons.js';
 import { isSupabaseConfigured, supabase } from '../../lib/supabase.js';
 
+// Create an editable add-on record or a blank draft for a new add-on.
 function makeDraft(addon = null) {
     return {
         key: addon?.id ?? `new-addon-${crypto.randomUUID()}`,
@@ -13,6 +14,7 @@ function makeDraft(addon = null) {
     };
 }
 
+// Require a valid non-negative amount before saving an add-on.
 function parsePrice(value) {
     if (value === '') return null;
     const price = Number(value);
@@ -22,6 +24,7 @@ function parsePrice(value) {
     return price;
 }
 
+// Manage the shared add-on names, descriptions, prices, and active states.
 export default function ServiceAddonsManagement() {
     const { addons, loading, error, refresh } = useServiceAddons({ includeInactive: true });
     const [drafts, setDrafts] = useState([]);
@@ -30,6 +33,7 @@ export default function ServiceAddonsManagement() {
     const [message, setMessage] = useState('');
     const [formError, setFormError] = useState('');
 
+    // Merge refreshed add-ons without losing unsaved edits or new drafts.
     useEffect(() => {
         const savedDrafts = addons.map((addon) => makeDraft(addon));
         setDrafts((current) => {
@@ -44,6 +48,7 @@ export default function ServiceAddonsManagement() {
         });
     }, [addons, dirtyIds]);
 
+    // Update one add-on draft while retaining its other edited fields.
     const updateDraft = (key, updates) => {
         setDirtyIds((current) => new Set(current).add(key));
         setMessage('');
@@ -51,6 +56,7 @@ export default function ServiceAddonsManagement() {
         setDrafts((current) => current.map((draft) => draft.key === key ? { ...draft, ...updates } : draft));
     };
 
+    // Validate and persist one add-on, reporting database errors to the admin.
     const saveAddon = async (event, draft) => {
         event.preventDefault();
         setMessage('');
@@ -101,6 +107,7 @@ export default function ServiceAddonsManagement() {
         }
     };
 
+    // Remove a saved add-on only after the admin confirms the action.
     const deleteAddon = async (draft) => {
         if (!draft.id || !window.confirm(`Permanently remove ${draft.name}?`)) return;
         setMessage('');
@@ -126,6 +133,7 @@ export default function ServiceAddonsManagement() {
 
     return (
         <section className="admin-panel service-management">
+            {/* The public price list reads the same active add-ons managed here. */}
             <div className="admin-panel-heading">
                 <div>
                     <p className="eyebrow">Optional service upgrades</p>

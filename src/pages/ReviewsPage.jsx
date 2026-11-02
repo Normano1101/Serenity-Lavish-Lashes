@@ -1,5 +1,6 @@
 import Footer from '../components/Footer.jsx';
 
+// Show the reviews page introduction and shared site footer.
 export default function ReviewsPage() {
     return (
         <>

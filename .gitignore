@@ -1,6 +1,34 @@
+# Dependencies
 node_modules/
+
+# Production builds
 dist/
+build/
+
+# macOS files
 .DS_Store
+
+# Logs
 npm-debug.log*
-.env*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+
+# Environment variables (Supabase credentials)
+.env
+.env.*
 !.env.example
+
+# Supabase local development
+supabase/.branches/
+supabase/.temp/
+
+# Editor settings
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# Temporary files
+*.tmp
+*.temp

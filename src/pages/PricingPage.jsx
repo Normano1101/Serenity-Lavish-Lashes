@@ -11,6 +11,7 @@ import useServiceAddons from '../hooks/useServiceAddons.js';
 
 const knownServiceOrder = ['Classic', 'Wet', 'Hybrid', 'Volume', 'Anime', 'Wispy', 'YY'];
 
+// Pair each full-set service with its matching fill and keep familiar styles ordered.
 function makePriceOptions(services) {
     const fills = new Map(
         services
@@ -37,6 +38,7 @@ function makePriceOptions(services) {
         });
 }
 
+// Show available service photos or a clear placeholder when none are configured.
 function PricingImages({ option }) {
     return (
         <div className={`pricing-images${option.images.length === 1 ? ' pricing-images-single' : ''}`}>
@@ -53,6 +55,7 @@ function PricingImages({ option }) {
     );
 }
 
+// Load and display the current service prices and add-on catalog.
 export default function PricingPage() {
     const { services, loading, error, refresh, usingInitialCatalog: usingInitialServices } = useServices();
     const {
@@ -84,6 +87,7 @@ export default function PricingPage() {
                         {' '}20261012020000, 20261012030000, and 20261012040000 to enable saved admin-managed prices and live updates.
                     </p>
                 )}
+                {/* Refresh both catalogs together because they share the same page status. */}
                 <div className="pricing-refresh">
                     <button
                         type="button"

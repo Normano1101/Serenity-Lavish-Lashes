@@ -3,6 +3,7 @@ import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import Footer from '../../components/Footer.jsx';
 import { useAuth } from '../../auth/AuthProvider.jsx';
 
+// Sign in provisioned admins and return them to the protected page they requested.
 export default function AdminLogin() {
     const { configured, loading, user, signIn } = useAuth();
     const navigate = useNavigate();
@@ -30,6 +31,7 @@ export default function AdminLogin() {
     }
     if (user) return <Navigate to="/admin" replace />;
 
+    // Validate the return path before navigating so sign-in only returns to admin URLs.
     const submitLogin = async (event) => {
         event.preventDefault();
         setError('');

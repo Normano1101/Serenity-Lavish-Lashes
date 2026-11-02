@@ -1,3 +1,4 @@
+// Build the ordered photo URLs used by the portfolio gallery.
 const portfolioPhotoCount = 20;
 const portfolioPhotos = Array.from(
     { length: portfolioPhotoCount },

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { INITIAL_SERVICE_ADDONS } from '../data/services.js';
 import { isSupabaseConfigured, supabase } from '../lib/supabase.js';
 
+// Recognize schema/setup errors for which the bundled public list is a valid fallback.
 function canUseInitialAddons(queryError) {
     return queryError.code === '42P01'
         || queryError.code === 'PGRST205'
@@ -9,12 +10,14 @@ function canUseInitialAddons(queryError) {
         || /could not find the table .*service_addons.*schema cache/i.test(queryError.message);
 }
 
+// Fetch active add-ons for customers or all add-ons for admin management.
 export default function useServiceAddons({ includeInactive = false } = {}) {
     const [addons, setAddons] = useState([]);
     const [loading, setLoading] = useState(isSupabaseConfigured);
     const [error, setError] = useState('');
     const [usingInitialCatalog, setUsingInitialCatalog] = useState(false);
 
+    // Load add-ons, using starter data only when public catalog access is unavailable.
     const refresh = useCallback(async ({ showLoading = false } = {}) => {
         if (!supabase) {
             setAddons(includeInactive ? [] : INITIAL_SERVICE_ADDONS);
@@ -51,6 +54,7 @@ export default function useServiceAddons({ includeInactive = false } = {}) {
         }
     }, [includeInactive]);
 
+    // Refresh on mount and subscribe to shared catalog changes when configured.
     useEffect(() => {
         refresh({ showLoading: true });
         if (!supabase) return undefined;

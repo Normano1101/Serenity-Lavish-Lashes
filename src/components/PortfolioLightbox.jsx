@@ -1,9 +1,11 @@
 import { useEffect, useRef } from 'react';
 
+// Present one photo in a keyboard- and touch-friendly full-screen dialog.
 export default function PortfolioLightbox({ photos, selectedIndex, onSelect, onClose }) {
     const dialogRef = useRef(null);
     const touchStartX = useRef(null);
 
+    // Support Escape, arrow-key navigation, and keeping keyboard focus in the dialog.
     useEffect(() => {
         const dialog = dialogRef.current;
         const focusable = dialog?.querySelectorAll('button:not([disabled])');
@@ -34,16 +36,19 @@ export default function PortfolioLightbox({ photos, selectedIndex, onSelect, onC
         };
     }, [onClose, onSelect, photos.length, selectedIndex]);
 
+    // Lock background scrolling while open and restore the page when it closes.
     useEffect(() => {
         document.body.classList.add('portfolio-lightbox-open');
         dialogRef.current?.querySelector('.portfolio-lightbox-close')?.focus();
         return () => document.body.classList.remove('portfolio-lightbox-open');
     }, []);
 
+    // Wrap previous/next navigation around the ends of the photo list.
     const showPhoto = (direction) => {
         onSelect((selectedIndex + direction + photos.length) % photos.length);
     };
 
+    // Treat a horizontal swipe as previous/next photo navigation.
     const handleTouchEnd = (event) => {
         if (touchStartX.current === null) return;
         const distance = event.changedTouches[0].clientX - touchStartX.current;

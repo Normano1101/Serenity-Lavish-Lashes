@@ -12,16 +12,20 @@ import {
     updateAppointment
 } from '../../data/appointments.js';
 
+// Keep the table filter options aligned with the status names used in storage.
 const FILTERS = ['all', 'today', 'upcoming', 'pending', 'confirmed', 'cancelled'];
 
+// Check whether a local demo appointment falls on today's date.
 function isToday(appointment) {
     return appointment.date === dateAfterDays(0);
 }
 
+// Include future appointments unless they have been cancelled.
 function isUpcoming(appointment) {
     return appointment.date > dateAfterDays(0) && appointment.status !== 'cancelled';
 }
 
+// Filter, update, reschedule, and manually add local demo appointments.
 export default function Appointments({ appointments }) {
     const [filter, setFilter] = useState('all');
     const [detailsId, setDetailsId] = useState(null);
@@ -38,12 +42,14 @@ export default function Appointments({ appointments }) {
         .filter((name) => settings.services[name]?.active && Number(settings.services[name].duration) > 0)
         .map((name) => ({ name, ...settings.services[name] }));
 
+    // Apply the selected status/date filter before rendering table rows.
     const visibleAppointments = appointments.filter((appointment) => {
         if (filter === 'today') return isToday(appointment);
         if (filter === 'upcoming') return isUpcoming(appointment);
         return filter === 'all' || appointment.status === filter;
     });
 
+    // Save a status change and show any local-storage error to the admin.
     const changeStatus = (appointment, status) => {
         setActionError('');
         try {
@@ -53,6 +59,7 @@ export default function Appointments({ appointments }) {
         }
     };
 
+    // Confirm the replacement slot is still free before moving the appointment.
     const reschedule = (event, appointment) => {
         event.preventDefault();
         setActionError('');
@@ -78,6 +85,7 @@ export default function Appointments({ appointments }) {
         }
     };
 
+    // Add a fictional phone/text/Instagram booking to the local demo schedule.
     const addManualAppointment = (event) => {
         event.preventDefault();
         setManualError('');
@@ -136,6 +144,7 @@ export default function Appointments({ appointments }) {
 
             {actionError && <p className="form-message form-error" role="alert">{actionError}</p>}
 
+            {/* The table keeps appointment actions next to each customer's booking. */}
             <div className="admin-table-wrap">
                 <table className="appointments-table">
                     <thead>
@@ -246,6 +255,7 @@ export default function Appointments({ appointments }) {
                 </table>
             </div>
 
+            {/* Manual entries are explicitly labeled demo data and stay in this browser. */}
             <details className="manual-appointment">
                 <summary>Add a manual appointment (development demo)</summary>
                 <p>Use this for a fictional appointment received by phone, text, or Instagram.</p>

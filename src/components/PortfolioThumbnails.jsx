@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 
+// Display photo choices and keep the currently selected thumbnail in view.
 export default function PortfolioThumbnails({ photos, selectedIndex, onSelect }) {
     const selectedThumbnail = useRef(null);
 

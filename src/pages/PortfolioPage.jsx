@@ -1,8 +1,7 @@
-import { Link } from 'react-router-dom';
-import portfolioPhotos from '../data/portfolioPhotos.js';
 import Footer from '../components/Footer.jsx';
 import PortfolioSlideshow from '../components/PortfolioSlideshow.jsx';
 
+// Introduce the gallery and render its interactive slideshow.
 export default function PortfolioPage() {
     return (
         <>
@@ -18,8 +17,6 @@ export default function PortfolioPage() {
                     </p>
                 </section>
                 <PortfolioSlideshow />
-                
-                
             </main>
             <Footer />
         </>

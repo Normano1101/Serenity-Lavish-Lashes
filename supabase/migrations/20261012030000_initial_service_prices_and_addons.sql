@@ -1,3 +1,4 @@
+-- Seed the initial public service prices and create the shared service add-on catalog.
 do $$
 declare
     service_name record;
@@ -31,6 +32,7 @@ begin
 end;
 $$;
 
+-- Ensure every starter lash style has full-set and fill records before setting prices.
 insert into public.services (name, is_active)
 values
     ('YY Set Full Set', true),
@@ -91,6 +93,7 @@ where name in (
     'Anime Lashes Fill', 'Classic Lashes Fill'
 );
 
+-- Keep optional upgrades in a separate catalog with their own active status.
 create table public.service_addons (
     id uuid primary key default gen_random_uuid(),
     name text not null unique check (length(trim(name)) between 1 and 100),
@@ -106,6 +109,7 @@ revoke all on public.service_addons from anon, authenticated;
 grant select on public.service_addons to anon, authenticated;
 grant select, insert, update, delete on public.service_addons to authenticated;
 
+-- Let customers read active add-ons while restricting catalog changes to admins.
 create policy "Public reads active service add-ons" on public.service_addons
 for select to anon, authenticated using (is_active or public.is_business_admin());
 
@@ -122,6 +126,7 @@ create policy "Admins delete service add-ons" on public.service_addons
 for delete to authenticated
 using (public.is_business_admin());
 
+-- Add starter upgrades only when their names are not already present.
 insert into public.service_addons (name, price)
 values
     ('Spikes', 10),
@@ -131,6 +136,7 @@ values
     ('Mini Fill', 55)
 on conflict (name) do nothing;
 
+-- Publish add-on changes to subscribed pricing pages.
 do $$
 begin
     if exists (select 1 from pg_publication where pubname = 'supabase_realtime')

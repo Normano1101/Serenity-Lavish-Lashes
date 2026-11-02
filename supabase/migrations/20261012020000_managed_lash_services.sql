@@ -1,3 +1,4 @@
+-- Add public service details/images and an admin-only RPC for saving paired lash services.
 alter table public.services
     add column if not exists description text not null default '',
     add column if not exists image_urls text[] not null default '{}',
@@ -31,6 +32,7 @@ where name in (
     'Volume Full Set', 'Anime Full Set', 'Wispy Full Set'
 );
 
+-- Store service photos in a public-read bucket with a 10 MB image-file limit.
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values (
     'serenity-service-images',
@@ -61,6 +63,7 @@ create policy "Admins delete service images" on storage.objects
 for delete to authenticated
 using (bucket_id = 'serenity-service-images' and public.is_business_admin());
 
+-- Save the full-set and fill records together so their names and prices stay paired.
 create or replace function public.save_lash_service(
     p_full_service_id uuid,
     p_name text,
@@ -178,6 +181,7 @@ grant execute on function public.save_lash_service(
     uuid, text, text, text[], numeric, numeric, numeric, integer, integer, boolean
 ) to authenticated;
 
+-- Publish service changes to clients that subscribe to Supabase Realtime.
 do $$
 begin
     if exists (select 1 from pg_publication where pubname = 'supabase_realtime')

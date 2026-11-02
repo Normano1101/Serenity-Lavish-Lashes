@@ -1,3 +1,4 @@
+-- Normalize legacy names and restore missing starter styles, images, and prices.
 do $$
 declare
     lash_set record;

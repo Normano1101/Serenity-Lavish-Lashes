@@ -1,6 +1,6 @@
 # Supabase admin foundation setup
 
-This repository includes a Supabase Auth client, protected admin routes, a super-admin account role screen, and PostgreSQL migrations with RLS policies. Appointment administration and schedule editing still use browser `localStorage`; do not treat those admin workflows as shared production features.
+This repository includes a Supabase Auth client, protected admin routes, a super-admin account role screen, and PostgreSQL migrations with RLS policies. Appointment administration still uses browser `localStorage`; weekly business hours, breaks, and date rules are stored in Supabase after applying the schedule migrations.
 
 ## Configure the project
 
@@ -13,6 +13,8 @@ This repository includes a Supabase Auth client, protected admin routes, a super
    - `migrations/20261012030000_initial_service_prices_and_addons.sql`
    - `migrations/20261012040000_public_service_catalog_access.sql`
    - `migrations/20261012050000_restore_initial_lash_catalog.sql`
+   - `migrations/20261012060000_date_rules_realtime.sql`
+   - `migrations/20261012070000_save_business_schedule.sql`
 4. Find the first account's immutable user UUID in **Authentication → Users**. In SQL Editor, promote only that verified account. Replace the email below with the exact email used to create the initial account:
 
    ```sql
@@ -39,7 +41,7 @@ This repository includes a Supabase Auth client, protected admin routes, a super
 5. Copy `.env.example` to `.env.local` and fill in the project's URL and publishable/anon key from Supabase project API settings. Never use a `service_role` key in any `VITE_*` variable or browser code.
 6. Restart Vite with `npm run dev`. Open `/admin/login` and sign in with the provisioned account. Test owner and super-admin accounts separately.
 7. In the Admin Dashboard, use **Services & Pricing** and **Add-Ons** to manage the shared service names, prices, refill prices, descriptions, photos, durations, and active status. Migration `20261012030000` seeds the client-provided prices only into empty price fields, seeds the five add-ons only when their names are absent, and leaves Wispy pricing unconfigured. It does not seed Brown Lashes durations.
-8. Customer online bookings are disabled by default. Do not set `VITE_ENABLE_PUBLIC_BOOKINGS=true` until the real timezone, database weekly hours, schedule workflow, appointment dashboard, and booking flow have been configured and tested. The public form uses the secure availability and appointment RPCs when enabled; it never submits a price.
+8. Set the real timezone, service durations, and weekly business hours in the Admin Dashboard. The Booking page can preview server-calculated availability after those settings are saved. Customer online bookings are disabled by default; do not set `VITE_ENABLE_PUBLIC_BOOKINGS=true` until the appointment dashboard and complete booking flow have also been configured and tested. The public form uses the secure availability and appointment RPCs and never submits a price.
 
 ## What the migration protects
 
@@ -54,7 +56,7 @@ This repository includes a Supabase Auth client, protected admin routes, a super
 - The portfolio bucket allows public reads and restricts uploads, updates, and deletes to admins.
 - The `serenity-portfolio` bucket is private; public photo delivery should use signed URLs for rows marked published.
 
-The migrations have **not** been applied or tested against a live Supabase project in this workspace. The Admin Dashboard's appointment, schedule, calendar, and manual appointment tools still use browser `localStorage`; those workflows are not shared between admins. The customer booking form remains disabled for production unless explicitly enabled after configuration and testing.
+The migrations have **not** been applied or tested against a live Supabase project in this workspace. The Admin Dashboard's appointment, calendar, and manual appointment tools still use browser `localStorage`; those workflows are not shared between admins. Schedule hours, breaks, date rules, service data, and add-ons are shared through Supabase. The customer booking form remains disabled for production unless explicitly enabled after configuration and testing.
 
 ## Before production
 

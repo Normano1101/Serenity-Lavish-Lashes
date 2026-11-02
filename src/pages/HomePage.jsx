@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import Footer from '../components/Footer.jsx';
 import HomeSlideshow from '../components/HomeSlideshow.jsx';
 
+// Present the main booking call to action, slideshow, and portfolio entry point.
 export default function HomePage() {
     return (
         <>

@@ -1,4 +1,4 @@
-/* ===== HERO ===== */
+/* Layout for the home-page heading, booking link, and slideshow. */
 .hero {
     min-height: 50vh;
     display: flex;
@@ -13,10 +13,5 @@
 .hero-content {
     max-width: 800px;
     margin: 0 auto;
-    text-align: center;
-}
-
-.hero-content h1,
-.hero-content p {
     text-align: center;
 }

@@ -18,9 +18,11 @@ import useServices from '../hooks/useServices.js';
 import { isSupabaseConfigured, supabase } from '../lib/supabase.js';
 
 const WEEKDAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+// Require explicit opt-in as well as Supabase before accepting public bookings.
 const productionBookingEnabled = isSupabaseConfigured
     && import.meta.env.VITE_ENABLE_PUBLIC_BOOKINGS === 'true';
 
+// Build all calendar cells, including leading/trailing days needed for full weeks.
 function getMonthCells(month) {
     const firstDay = new Date(month.getFullYear(), month.getMonth(), 1);
     const startOffset = firstDay.getDay();
@@ -37,6 +39,7 @@ function getMonthCells(month) {
     });
 }
 
+// Handle service selection, availability lookup, and secure appointment requests.
 export default function BookingPage() {
     const { appointments, error: loadError } = useAppointments();
     const {
@@ -55,9 +58,11 @@ export default function BookingPage() {
     });
     const [confirmation, setConfirmation] = useState('');
     const [error, setError] = useState('');
+    const [availabilityMessage, setAvailabilityMessage] = useState('');
     const [databaseSlots, setDatabaseSlots] = useState(new Map());
     const [availabilityLoading, setAvailabilityLoading] = useState(false);
     const [submitting, setSubmitting] = useState(false);
+    // Choose local demo data or the shared catalog, depending on configuration.
     const settings = useMemo(() => getBookingSettings(), [settingsVersion]);
     const demoServices = SERVICES
         .filter((name) => settings.services[name]?.active && Number(settings.services[name].duration) > 0)
@@ -72,6 +77,7 @@ export default function BookingPage() {
                 price: item.price
             }))
         : demoServices;
+    // Calculate local demo availability; Supabase availability is loaded separately.
     const slotsByDate = useMemo(() => {
         if (isSupabaseConfigured) return databaseSlots;
         const slots = new Map();
@@ -88,6 +94,7 @@ export default function BookingPage() {
     const selectedService = activeServices.find((item) =>
         isSupabaseConfigured ? item.id === service : item.name === service
     );
+    // Group full sets and fills by lash style and keep known styles in a stable order.
     const serviceGroups = useMemo(() => {
         const groups = new Map();
         activeServices.forEach((item) => {
@@ -107,6 +114,7 @@ export default function BookingPage() {
     }, [activeServices]);
     const monthLabel = month.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
 
+    // Keep demo schedule changes made elsewhere in this tab or another tab visible.
     useEffect(() => {
         const refresh = () => setSettingsVersion((version) => version + 1);
         window.addEventListener('serenity-demo-appointments-changed', refresh);
@@ -117,24 +125,36 @@ export default function BookingPage() {
         };
     }, []);
 
+    // Ask Supabase for its authoritative slots for the selected service and month.
     useEffect(() => {
-        if (!productionBookingEnabled || !selectedService?.id) {
+        if (!isSupabaseConfigured || !selectedService?.id) {
             setDatabaseSlots(new Map());
             setAvailabilityLoading(false);
+            setAvailabilityMessage('');
             return undefined;
         }
 
         let mounted = true;
-        const monthStart = new Date(month.getFullYear(), month.getMonth(), 1);
-        const monthEnd = new Date(month.getFullYear(), month.getMonth() + 1, 0);
+        const monthStart = new Date(month.getFullYear(), month.getMonth(), 1, 12);
+        const monthEnd = new Date(month.getFullYear(), month.getMonth() + 1, 0, 12);
         const todayKey = formatDateKey(new Date());
+        const maxDate = new Date();
+        maxDate.setDate(maxDate.getDate() + 90);
+        const maxDateKey = formatDateKey(maxDate);
         const startDate = formatDateKey(monthStart) < todayKey ? todayKey : formatDateKey(monthStart);
-        const endDate = formatDateKey(monthEnd);
+        const endDate = formatDateKey(monthEnd) > maxDateKey ? maxDateKey : formatDateKey(monthEnd);
 
         setDatabaseSlots(new Map());
         setError('');
+        setAvailabilityMessage('');
+        if (!Number.isFinite(Number(selectedService.duration_minutes)) || Number(selectedService.duration_minutes) <= 0) {
+            setAvailabilityLoading(false);
+            setAvailabilityMessage('The owner needs to configure this service’s appointment duration before available dates can be shown.');
+            return undefined;
+        }
         if (endDate < startDate) {
             setAvailabilityLoading(false);
+            setAvailabilityMessage(`Availability can be checked through ${formatDate(maxDateKey)}.`);
             return undefined;
         }
 
@@ -156,6 +176,9 @@ export default function BookingPage() {
                     slots.set(key, [...(slots.get(key) ?? []), time]);
                 });
                 setDatabaseSlots(slots);
+                setAvailabilityMessage(slots.size
+                    ? ''
+                    : 'No available appointment times are configured for this month. The owner may need to add business hours, service duration, or date availability.');
             }
             setAvailabilityLoading(false);
         }).catch((availabilityError) => {
@@ -169,6 +192,7 @@ export default function BookingPage() {
         };
     }, [month, selectedService?.duration_minutes, selectedService?.id]);
 
+    // Clear a selection if a catalog refresh removes the chosen service.
     useEffect(() => {
         if (isSupabaseConfigured && service && !selectedService) {
             setService('');
@@ -177,6 +201,7 @@ export default function BookingPage() {
         }
     }, [selectedService, service]);
 
+    // Clear stale dates and times whenever the available date list changes.
     useEffect(() => {
         if (date && !slotsByDate.has(date)) {
             setDate('');
@@ -184,16 +209,19 @@ export default function BookingPage() {
         }
     }, [date, slotsByDate]);
 
+    // Clear a selected time if that slot is no longer available.
     useEffect(() => {
         if (time && !availableSlots.includes(time)) setTime('');
     }, [availableSlots, time]);
 
+    // Move the calendar and clear selections that belonged to the old month.
     const changeMonth = (offset) => {
         setMonth((current) => new Date(current.getFullYear(), current.getMonth() + offset, 1));
         setDate('');
         setTime('');
     };
 
+    // Recheck the selected slot and send the request through the safe configured path.
     const submitBooking = async (event) => {
         event.preventDefault();
         setConfirmation('');
@@ -302,7 +330,9 @@ export default function BookingPage() {
                                             {styleServices.map((item) => (
                                                 <option value={isSupabaseConfigured ? item.id : item.name} key={item.id ?? item.name}>
                                                     {item.name.replace(`${style} `, '')}
-                                                    {Number(item.duration) > 0 ? ` · ${formatDuration(item.duration)}` : ''}
+                                                    {Number(item.duration) > 0
+                                                        ? ` · ${formatDuration(item.duration)}`
+                                                        : isSupabaseConfigured ? ' · Duration not set' : ''}
                                                     {isSupabaseConfigured
                                                         ? ` · ${formatServicePrice(item.price)}`
                                                         : item.price !== '' ? ` · $${item.price}` : ' · Price TBD'}
@@ -325,20 +355,34 @@ export default function BookingPage() {
                         {selectedService && (
                             <section className="booking-selection-summary" aria-live="polite">
                                 <strong>{selectedService.name}</strong>
-                                <span>{formatDuration(selectedService.duration)}</span>
+                                <span>{formatDuration(selectedService.duration) || 'Duration not configured'}</span>
                                 <span>{isSupabaseConfigured
                                     ? formatServicePrice(selectedService.price)
                                     : selectedService.price !== '' ? `$${selectedService.price}` : 'Price TBD'}</span>
                             </section>
                         )}
 
+                        {/* Dates are enabled only when the chosen service has an open slot. */}
                         <section className="booking-calendar-section" aria-labelledby="calendar-heading">
                             <div className="booking-section-heading">
                                 <h2 id="calendar-heading">2. Choose an available date</h2>
-                                {!service && <span>Select a service to see availability</span>}
+                                {!service && <span>Choose a lash service above first</span>}
                             </div>
                             <div className={`booking-calendar${service ? '' : ' calendar-needs-service'}`}>
+                                {!service && (
+                                    <p className="booking-calendar-prompt" role="status">
+                                        {isSupabaseConfigured && !productionBookingEnabled
+                                            ? 'Choose a lash service to check its available dates. Online appointment requests remain turned off.'
+                                            : 'Choose a lash service in step 1 to load availability and select a date.'}
+                                    </p>
+                                )}
                                 {availabilityLoading && <p role="status">Loading available times…</p>}
+                                {service && !productionBookingEnabled && isSupabaseConfigured && (
+                                    <p className="booking-calendar-prompt" role="status">
+                                        You can check available dates and times, but online appointment requests are not enabled yet.
+                                    </p>
+                                )}
+                                {availabilityMessage && <p className="booking-calendar-prompt" role="status">{availabilityMessage}</p>}
                                 <div className="booking-calendar-header">
                                     <button
                                         type="button"
@@ -386,7 +430,11 @@ export default function BookingPage() {
                                                     weekday: 'long',
                                                     month: 'long',
                                                     day: 'numeric'
-                                                })}${available ? ', available' : ', unavailable'}`}
+                                                })}${!service
+                                                    ? ', choose a service first'
+                                                    : availabilityLoading
+                                                        ? ', checking availability'
+                                                        : available ? ', available' : ', unavailable'}`}
                                                 onClick={() => {
                                                     setDate(cell.key);
                                                     setTime('');
@@ -406,6 +454,7 @@ export default function BookingPage() {
                             </div>
                         </section>
 
+                        {/* Display times only after a service and available date are selected. */}
                         <section className="booking-time-section" aria-labelledby="time-heading">
                             <h2 id="time-heading">3. Choose an available time</h2>
                             {!service ? (

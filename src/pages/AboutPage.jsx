@@ -1,5 +1,6 @@
 import Footer from '../components/Footer.jsx';
 
+// Introduce the lash artist and provide a consistent site footer.
 export default function AboutPage() {
     return (
         <>

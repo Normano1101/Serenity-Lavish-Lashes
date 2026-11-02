@@ -1,8 +1,145 @@
+/* Service/add-on tabs and the horizontally scrollable style selector. */
 .service-management-list {
     display: grid;
     gap: 18px;
 }
 
+.service-management {
+    min-width: 0;
+    overflow: hidden;
+}
+
+.service-management-tabs {
+    display: flex;
+    gap: 8px;
+    margin: 4px 0 22px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #edc3d3;
+}
+
+.service-management-tabs button {
+    min-height: 42px;
+    padding: 9px 18px;
+    border: 1px solid #d9b5c4;
+    border-radius: 10px 10px 0 0;
+    background: #fff;
+    color: #493943;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.service-management-tabs .service-management-tab-active {
+    border-color: #a52159;
+    background: #a52159;
+    color: #fff;
+}
+
+.service-selector {
+    display: grid;
+    grid-template-columns: 42px minmax(0, 1fr) 42px;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    margin: 18px 0 24px;
+}
+
+.service-selector-track {
+    display: grid;
+    grid-auto-columns: 152px;
+    grid-auto-flow: column;
+    gap: 12px;
+    min-width: 0;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    padding: 4px 2px 12px;
+    scroll-behavior: smooth;
+    scroll-snap-type: x mandatory;
+    scrollbar-color: #d88aaa #f8eaf0;
+    scrollbar-width: thin;
+    touch-action: pan-x pan-y;
+}
+
+.service-selector-card {
+    display: grid;
+    grid-template-rows: 105px minmax(40px, auto) auto;
+    align-content: start;
+    gap: 8px;
+    min-width: 0;
+    padding: 9px;
+    border: 1px solid #edc3d3;
+    border-radius: 14px;
+    background: #fff;
+    color: #493943;
+    font: inherit;
+    font-weight: 700;
+    text-align: left;
+    cursor: pointer;
+    scroll-snap-align: start;
+    transition: border-color 140ms ease, box-shadow 140ms ease, transform 140ms ease;
+}
+
+.service-selector-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 14px rgba(45, 17, 31, 0.1);
+}
+
+.service-selector-card-selected {
+    border: 2px solid #a52159;
+    padding: 8px;
+    background: #fff7fa;
+    box-shadow: 0 0 0 3px rgba(165, 33, 89, 0.12);
+    color: #81234e;
+}
+
+.service-selector-card img,
+.service-selector-placeholder {
+    width: 100%;
+    height: 105px;
+    border-radius: 8px;
+    background: #f7e9ef;
+    object-fit: cover;
+}
+
+.service-selector-placeholder {
+    display: grid;
+    place-items: center;
+    color: #a52159;
+    font-size: 1.5rem;
+    letter-spacing: 0.12em;
+}
+
+.service-selector-card > span:not(.service-selector-placeholder) {
+    align-self: center;
+    overflow-wrap: anywhere;
+}
+
+.service-selector-card small {
+    color: #705f68;
+    font-weight: 500;
+}
+
+.service-selector-arrow {
+    display: grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    border: 1px solid #d9b5c4;
+    border-radius: 50%;
+    background: #fff7fa;
+    color: #81234e;
+    font-size: 1.8rem;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.service-selector-arrow:hover,
+.service-selector-arrow:focus-visible {
+    border-color: #a52159;
+    background: #fce3ed;
+}
+
+/* Editor card and its collapsible service detail sections. */
 .service-management-card {
     display: grid;
     gap: 18px;
@@ -28,6 +165,72 @@
     margin: 0;
     color: #81234e;
     font-size: 1.3rem;
+}
+
+.service-management-card-heading .eyebrow {
+    margin: 0 0 5px;
+}
+
+.service-editor-section {
+    overflow: hidden;
+    border: 1px solid #e9d4dd;
+    border-radius: 12px;
+    background: #fff;
+}
+
+.service-editor-section > summary {
+    position: relative;
+    padding: 15px 44px 15px 17px;
+    background: #fff7fa;
+    color: #81234e;
+    font-weight: 700;
+    cursor: pointer;
+    list-style: none;
+}
+
+.service-editor-section > summary::-webkit-details-marker {
+    display: none;
+}
+
+.service-editor-section > summary::after {
+    position: absolute;
+    top: 50%;
+    right: 17px;
+    content: '+';
+    font-size: 1.35rem;
+    line-height: 1;
+    transform: translateY(-50%);
+}
+
+.service-editor-section[open] > summary {
+    border-bottom: 1px solid #f0dce4;
+}
+
+.service-editor-section[open] > summary::after {
+    content: '−';
+}
+
+.service-editor-section > .service-management-fields,
+.service-editor-section > .service-images-field {
+    margin: 0;
+    padding: 18px;
+}
+
+.service-editor-section > .service-images-field {
+    border: 0;
+}
+
+.service-editor-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding-top: 4px;
+}
+
+.service-unsaved-note {
+    color: #62545b;
+    font-size: 0.9rem;
 }
 
 .service-active-toggle {
@@ -91,47 +294,127 @@
 
 .service-image-library {
     display: grid;
-    gap: 8px;
+    gap: 12px;
 }
 
-.service-image-library p {
-    margin: 0;
+.service-photo-category {
+    display: grid;
+    max-width: 360px;
+    gap: 7px;
     color: #493943;
     font-weight: 700;
 }
 
-.service-image-library-options {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px 14px;
+.service-photo-category select {
+    min-height: 42px;
+    padding: 8px 10px;
+    border: 1px solid #d9b5c4;
+    border-radius: 8px;
+    background: #fff;
+    color: #21171d;
+    font: inherit;
 }
 
-.service-image-library-options label {
-    display: inline-flex;
-    align-items: center;
+.service-image-library-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(135px, 1fr));
+    gap: 12px;
+}
+
+.service-image-option {
+    position: relative;
+    display: grid;
     gap: 6px;
+    padding: 8px;
+    border: 1px solid #e9d4dd;
+    border-radius: 10px;
+    background: #fff;
     color: #493943;
     font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.service-image-option-selected {
+    border: 2px solid #a52159;
+    padding: 7px;
+    background: #fff7fa;
+}
+
+.service-image-option input {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    z-index: 1;
+    width: 20px;
+    height: 20px;
+    accent-color: #a52159;
+}
+
+.service-image-option img {
+    width: 100%;
+    height: 132px;
+    border-radius: 7px;
+    background: #f8f2f2;
+    object-fit: cover;
+}
+
+.service-image-option strong {
+    color: #a52159;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+}
+
+.service-photo-empty {
+    grid-column: 1 / -1;
+    margin: 0;
+    padding: 18px;
+    border-radius: 9px;
+    background: #fff;
+    color: #62545b;
 }
 
 .service-image-previews {
     display: flex;
     flex-wrap: wrap;
+    align-items: flex-start;
     gap: 12px;
+}
+
+.service-image-previews h4,
+.service-image-previews > p {
+    flex: 0 0 100%;
+    margin: 0;
+    color: #493943;
 }
 
 .service-image-preview {
     display: grid;
-    width: min(150px, 100%);
+    width: min(190px, 100%);
     gap: 8px;
+    padding: 10px;
+    border: 1px solid #e9d4dd;
+    border-radius: 10px;
+    background: #fff;
+}
+
+.service-image-preview > span {
+    color: #81234e;
+    font-size: 0.88rem;
+    font-weight: 700;
 }
 
 .service-image-preview img {
     width: 100%;
-    height: 150px;
+    height: 164px;
     border-radius: 8px;
     background: #f8f2f2;
     object-fit: cover;
+}
+
+.service-image-preview-actions {
+    display: grid;
+    gap: 6px;
 }
 
 .service-save-button {
@@ -146,6 +429,32 @@
 }
 
 @media (max-width: 640px) {
+    .service-selector {
+        grid-template-columns: 34px minmax(0, 1fr) 34px;
+        gap: 6px;
+    }
+
+    .service-selector-arrow {
+        width: 34px;
+        height: 34px;
+        font-size: 1.5rem;
+    }
+
+    .service-selector-track {
+        grid-auto-columns: 130px;
+        gap: 9px;
+    }
+
+    .service-selector-card {
+        grid-template-rows: 90px minmax(38px, auto) auto;
+        padding: 7px;
+    }
+
+    .service-selector-card img,
+    .service-selector-placeholder {
+        height: 90px;
+    }
+
     .service-management-card {
         padding: 14px;
     }

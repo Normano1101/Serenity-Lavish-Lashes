@@ -1,3 +1,4 @@
+// Keep demo appointments and settings in separate, versioned browser-storage lists.
 const STORAGE_KEYS = {
     samples: 'serenity-demo-sample-appointments-v1',
     customer: 'serenity-demo-customer-appointments-v1',
@@ -5,6 +6,7 @@ const STORAGE_KEYS = {
     settings: 'serenity-demo-booking-settings-v1'
 };
 
+// Build the demo service choices and the status labels used by booking/admin views.
 export const LASH_STYLES = ['Classic', 'Wet', 'Hybrid', 'Volume', 'Wispy', 'Anime'];
 export const SERVICE_TYPES = ['Full Set', 'Fill'];
 export const LEGACY_SERVICES = LASH_STYLES;
@@ -23,6 +25,7 @@ export const WEEKDAYS = [
 export const APPOINTMENT_STATUSES = ['pending', 'confirmed', 'cancelled'];
 export const APPOINTMENTS_CHANGED_EVENT = 'serenity-demo-appointments-changed';
 
+// Starter hours for local demo mode; admins can replace them in the schedule screen.
 const DEFAULT_SCHEDULE = {
     '0': { enabled: false, open: '09:00', close: '17:00', breaks: [] },
     '1': { enabled: true, open: '09:00', close: '17:00', breaks: [] },
@@ -33,6 +36,7 @@ const DEFAULT_SCHEDULE = {
     '6': { enabled: true, open: '10:00', close: '15:00', breaks: [] }
 };
 
+// Create a fresh settings object without sharing mutable service defaults.
 export function createDefaultSettings() {
     return {
         schedule: DEFAULT_SCHEDULE,
@@ -55,6 +59,7 @@ export function createDefaultSettings() {
     };
 }
 
+// Format local calendar dates as stable YYYY-MM-DD keys.
 export function formatDateKey(date) {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -62,16 +67,31 @@ export function formatDateKey(date) {
     return `${year}-${month}-${day}`;
 }
 
+// Format a date in the studio's configured timezone instead of the browser timezone.
+export function getDateKeyInTimeZone(date, timeZone) {
+    const parts = new Intl.DateTimeFormat('en-US', {
+        timeZone,
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+    }).formatToParts(date);
+    const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+    return `${values.year}-${values.month}-${values.day}`;
+}
+
+// Return the local calendar date a given number of days from now.
 export function dateAfterDays(days) {
     const date = new Date();
     date.setDate(date.getDate() + days);
     return formatDateKey(date);
 }
 
+// Convert a stored date key to a readable locale-specific date.
 export function formatDate(dateKey, options = { year: 'numeric', month: 'short', day: 'numeric' }) {
     return new Date(`${dateKey}T00:00:00`).toLocaleDateString(undefined, options);
 }
 
+// Display 24-hour database/storage times in the visitor's locale.
 export function formatTime(time) {
     const [hour, minute] = time.split(':').map(Number);
     return new Date(2000, 0, 1, hour, minute).toLocaleTimeString(undefined, {
@@ -80,6 +100,7 @@ export function formatTime(time) {
     });
 }
 
+// Present minute counts as hours where that improves readability.
 export function formatDuration(minutes) {
     const duration = Number(minutes);
     if (!Number.isFinite(duration) || duration <= 0) return '';
@@ -93,12 +114,14 @@ export function formatDuration(minutes) {
     return `${duration} minutes`;
 }
 
+// Convert an HH:mm value to minutes after midnight for range comparisons.
 export function toMinutes(time) {
     if (!time) return 0;
     const [hours, minutes] = time.split(':').map(Number);
     return hours * 60 + minutes;
 }
 
+// Read and validate one appointment list from local storage.
 function readList(key) {
     const value = window.localStorage.getItem(key);
     if (value === null) return [];
@@ -112,11 +135,13 @@ function readList(key) {
     }
 }
 
+// Save local data and notify components in this tab to refresh.
 function writeValue(key, value) {
     window.localStorage.setItem(key, JSON.stringify(value));
     window.dispatchEvent(new Event(APPOINTMENTS_CHANGED_EVENT));
 }
 
+// Merge saved settings over defaults so newly added options have safe values.
 function readSettingsValue() {
     const value = window.localStorage.getItem(STORAGE_KEYS.settings);
     if (value === null) return createDefaultSettings();
@@ -135,14 +160,17 @@ function readSettingsValue() {
     }
 }
 
+// Return the normalized local demo booking settings.
 export function getBookingSettings() {
     return readSettingsValue();
 }
 
+// Persist the local demo schedule and notify listeners.
 export function saveBookingSettings(settings) {
     writeValue(STORAGE_KEYS.settings, settings);
 }
 
+// Supply clearly fictional records so the empty demo dashboard is understandable.
 function createSampleAppointments() {
     return [
         {
@@ -187,6 +215,7 @@ function createSampleAppointments() {
     ];
 }
 
+// Seed demo appointments and schedule once without replacing saved user data.
 function initializeDemoData() {
     if (window.localStorage.getItem(STORAGE_KEYS.samples) === null) {
         writeValue(STORAGE_KEYS.samples, createSampleAppointments());
@@ -196,6 +225,7 @@ function initializeDemoData() {
     }
 }
 
+// Combine demo, customer, and manually entered records into chronological order.
 export function getAppointments() {
     initializeDemoData();
     return [
@@ -207,12 +237,14 @@ export function getAppointments() {
     );
 }
 
+// Route a new appointment to the local list that matches its origin.
 function storageKeyForSource(source) {
     if (source === 'sample') return STORAGE_KEYS.samples;
     if (source === 'manual') return STORAGE_KEYS.manual;
     return STORAGE_KEYS.customer;
 }
 
+// Validate a local demo booking against current hours before saving it.
 export function saveAppointment(appointment) {
     const settings = getBookingSettings();
     const service = settings.services[appointment.service];
@@ -233,6 +265,7 @@ export function saveAppointment(appointment) {
     writeValue(key, [...readList(key), { ...appointment, duration }]);
 }
 
+// Update a saved appointment while preserving its existing fields.
 export function updateAppointment(id, updates) {
     const key = Object.values(STORAGE_KEYS).find((storageKey) =>
         storageKey !== STORAGE_KEYS.settings
@@ -245,6 +278,7 @@ export function updateAppointment(id, updates) {
     ));
 }
 
+// Listen for same-tab and cross-tab changes and return a cleanup function.
 export function subscribeToAppointments(onChange) {
     const refresh = () => onChange();
     window.addEventListener(APPOINTMENTS_CHANGED_EVENT, refresh);
@@ -255,6 +289,7 @@ export function subscribeToAppointments(onChange) {
     };
 }
 
+// Apply date-specific closure/hour overrides before falling back to weekly hours.
 export function getDayHours(settings, date) {
     const rules = settings.dateRules.filter((rule) => rule.date === date);
     if (rules.some((rule) => rule.type === 'closed')) return null;
@@ -266,16 +301,19 @@ export function getDayHours(settings, date) {
     return weeklyHours?.enabled ? weeklyHours : null;
 }
 
+// Use half-open time ranges so adjacent appointments do not count as conflicts.
 function overlaps(start, end, otherStart, otherEnd) {
     return start < otherEnd && otherStart < end;
 }
 
+// Compare a local date/time with the current time to hide past booking slots.
 function isStartInPast(date, time) {
     const [year, month, day] = date.split('-').map(Number);
     const [hour, minute] = time.split(':').map(Number);
     return new Date(year, month - 1, day, hour, minute).getTime() <= Date.now();
 }
 
+// Resolve an appointment duration from its saved value, service, or interval.
 function getAppointmentDuration(appointment, settings) {
     return Number(
         appointment.duration
@@ -284,6 +322,7 @@ function getAppointmentDuration(appointment, settings) {
     );
 }
 
+// Return start times that fit working hours and avoid breaks, blocks, and bookings.
 export function getAvailableSlots(appointments, date, options = {}) {
     const settings = options.settings ?? getBookingSettings();
     const service = options.service ? settings.services[options.service] : null;
@@ -334,6 +373,7 @@ export function getAvailableSlots(appointments, date, options = {}) {
     return available;
 }
 
+// Describe every calendar interval, including occupied, blocked, and past slots.
 export function getCalendarSlots(appointments, date, settings = getBookingSettings()) {
     const hours = getDayHours(settings, date);
     if (!hours) return [];
@@ -374,6 +414,7 @@ export function getCalendarSlots(appointments, date, settings = getBookingSettin
     return slots;
 }
 
+// Find active appointments whose durations overlap on the same day.
 export function findConflicts(appointments, settings = getBookingSettings()) {
     const active = appointments.filter((appointment) => appointment.status !== 'cancelled');
     return new Set(
@@ -392,6 +433,7 @@ export function findConflicts(appointments, settings = getBookingSettings()) {
     );
 }
 
+// List upcoming dates that have at least one valid slot for a selected service.
 export function getBookableDates(appointments, settings, service, days = 90) {
     return Array.from({ length: days }, (_, index) => dateAfterDays(index))
         .filter((date) => getAvailableSlots(appointments, date, { settings, service }).length > 0);

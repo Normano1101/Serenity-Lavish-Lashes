@@ -1,4 +1,4 @@
-/* ===== PORTFOLIO ===== */
+/* Styles for the gallery viewer, thumbnail strip, lightbox, and home slideshow. */
 .portfolio-intro {
     max-width: 900px;
     margin: 40px auto;
@@ -217,12 +217,6 @@ body.portfolio-lightbox-open {
 
 .portfolio-lightbox-dialog > .portfolio-arrow {
     flex: 0 0 46px;
-}
-
-.lash-portfolio {
-    display: flex;
-    justify-content: center;
-    margin: 40px 0;
 }
 
 .slider {

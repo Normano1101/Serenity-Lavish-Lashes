@@ -1,15 +1,18 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
-    AVAILABLE_LASH_IMAGES,
     getServiceBaseName,
     getServiceDisplayName,
     getServiceImageSource,
-    getServiceType
+    getServiceType,
+    getLashPhotoCategory,
+    LASH_PHOTO_CATEGORIES
 } from '../../data/services.js';
 import { isSupabaseConfigured, supabase } from '../../lib/supabase.js';
 import useServices from '../../hooks/useServices.js';
+import ServiceAddonsManagement from './ServiceAddonsManagement.jsx';
 import './services-management.css';
 
+// Use the protected public-read bucket configured by the service-image migration.
 const IMAGE_BUCKET = 'serenity-service-images';
 const IMAGE_EXTENSIONS = {
     'image/jpeg': 'jpg',
@@ -18,6 +21,7 @@ const IMAGE_EXTENSIONS = {
     'image/gif': 'gif'
 };
 
+// Convert stored full-set/fill rows into one editable style card.
 function createDraft(fullService, fillService) {
     return {
         key: fullService?.id ?? `new-${crypto.randomUUID()}`,
@@ -34,6 +38,7 @@ function createDraft(fullService, fillService) {
     };
 }
 
+// Pair each lash style's full set and fill into a single admin draft.
 function getDrafts(services) {
     const fills = new Map(
         services
@@ -49,6 +54,7 @@ function getDrafts(services) {
         ));
 }
 
+// Convert an optional price to a number and reject invalid user input.
 function asNullablePrice(value, label) {
     if (value === '') return null;
     const price = Number(value);
@@ -58,6 +64,7 @@ function asNullablePrice(value, label) {
     return price;
 }
 
+// Let admins edit service details, upload photos, and save the shared catalog.
 export default function ServicesManagement() {
     const { services, loading, error, refresh } = useServices({ includeInactive: true });
     const [drafts, setDrafts] = useState([]);
@@ -66,7 +73,12 @@ export default function ServicesManagement() {
     const [uploadingKey, setUploadingKey] = useState('');
     const [message, setMessage] = useState('');
     const [formError, setFormError] = useState('');
+    const [photoCategories, setPhotoCategories] = useState({});
+    const [selectedKey, setSelectedKey] = useState('');
+    const [activeTab, setActiveTab] = useState('services');
+    const serviceCarousel = useRef(null);
 
+    // Merge refreshed server data without discarding unsaved edits or new drafts.
     useEffect(() => {
         const savedDrafts = getDrafts(services);
         setDrafts((current) => {
@@ -81,6 +93,18 @@ export default function ServicesManagement() {
         });
     }, [dirtyKeys, services]);
 
+    // Keep the selected style visible when the catalog changes.
+    useEffect(() => {
+        if (!drafts.length) {
+            setSelectedKey('');
+            return;
+        }
+        if (!drafts.some((draft) => draft.key === selectedKey)) {
+            setSelectedKey(drafts[0].key);
+        }
+    }, [drafts, selectedKey]);
+
+    // Apply a field edit to one draft while preserving its other form values.
     const updateDraft = (key, updates) => {
         setDirtyKeys((current) => new Set(current).add(key));
         setMessage('');
@@ -90,14 +114,18 @@ export default function ServicesManagement() {
         ));
     };
 
+    // Add a blank service card and select it for immediate editing.
     const addService = () => {
         const draft = createDraft(null, null);
         setDrafts((current) => [...current, draft]);
+        setSelectedKey(draft.key);
+        setActiveTab('services');
         setDirtyKeys((current) => new Set(current).add(draft.key));
         setMessage('');
         setFormError('');
     };
 
+    // Validate, upload, and append selected photos to the draft's image list.
     const uploadImages = async (draft, files) => {
         if (!files.length) return;
         setUploadingKey(draft.key);
@@ -132,6 +160,7 @@ export default function ServicesManagement() {
         }
     };
 
+    // Validate one draft and save its full-set/fill data through the admin RPC.
     const saveService = async (event, draft) => {
         event.preventDefault();
         setMessage('');
@@ -193,6 +222,21 @@ export default function ServicesManagement() {
         }
     };
 
+    // Move the horizontal service selector by one visible card.
+    const scrollServices = (direction) => {
+        serviceCarousel.current?.scrollBy({
+            left: direction * 240,
+            behavior: 'smooth'
+        });
+    };
+
+    const selectedDraft = drafts.find((draft) => draft.key === selectedKey);
+    const selectedExistingService = services.find((service) => service.id === selectedDraft?.fullServiceId);
+    const selectedCategory = selectedDraft
+        ? photoCategories[selectedDraft.key] ?? getLashPhotoCategory(selectedDraft.name)
+        : '';
+    const categoryImages = LASH_PHOTO_CATEGORIES.find((category) => category.name === selectedCategory)?.images ?? [];
+
     return (
         <section className="admin-panel service-management">
             <div className="admin-panel-heading">
@@ -200,11 +244,44 @@ export default function ServicesManagement() {
                     <p className="eyebrow">Shared Supabase catalog</p>
                     <h2>Services &amp; Pricing</h2>
                 </div>
-                <button type="button" className="small-button" onClick={addService} disabled={!isSupabaseConfigured}>
-                    Add lash set
+                {activeTab === 'services' && (
+                    <button type="button" className="small-button" onClick={addService} disabled={!isSupabaseConfigured}>
+                        Add lash set
+                    </button>
+                )}
+            </div>
+
+            <div className="service-management-tabs" role="tablist" aria-label="Pricing management">
+                <button
+                    id="lash-sets-tab"
+                    type="button"
+                    role="tab"
+                    aria-selected={activeTab === 'services'}
+                    aria-controls="lash-sets-panel"
+                    className={activeTab === 'services' ? 'service-management-tab-active' : ''}
+                    onClick={() => setActiveTab('services')}
+                >
+                    Lash Sets
+                </button>
+                <button
+                    id="addons-tab"
+                    type="button"
+                    role="tab"
+                    aria-selected={activeTab === 'addons'}
+                    aria-controls="addons-panel"
+                    className={activeTab === 'addons' ? 'service-management-tab-active' : ''}
+                    onClick={() => setActiveTab('addons')}
+                >
+                    Add-Ons
                 </button>
             </div>
 
+            {activeTab === 'addons' ? (
+                <div id="addons-panel" role="tabpanel" aria-labelledby="addons-tab">
+                    <ServiceAddonsManagement />
+                </div>
+            ) : (
+                <div id="lash-sets-panel" role="tabpanel" aria-labelledby="lash-sets-tab">
             <p className="schedule-help">
                 Manage the public price list and the matching full-set and refill booking services. Blank prices appear as “Price TBD.”
             </p>
@@ -218,138 +295,236 @@ export default function ServicesManagement() {
             {message && <p className="form-message form-success" role="status">{message}</p>}
             {formError && <p className="form-message form-error" role="alert">{formError}</p>}
 
-            <div className="service-management-list">
-                {drafts.map((draft) => (
+                    {/* Select a lash style before editing its shared full-set and fill records. */}
+                    <div className="service-selector">
+                        <button
+                            type="button"
+                            className="service-selector-arrow"
+                            aria-label="Scroll lash sets left"
+                            onClick={() => scrollServices(-1)}
+                        >
+                            ‹
+                        </button>
+                        <div
+                            className="service-selector-track"
+                            ref={serviceCarousel}
+                            onWheel={(event) => {
+                                if (Math.abs(event.deltaY) > Math.abs(event.deltaX)) {
+                                    event.currentTarget.scrollLeft += event.deltaY;
+                                }
+                            }}
+                        >
+                            {drafts.map((draft) => (
+                                <button
+                                    type="button"
+                                    key={draft.key}
+                                    className={`service-selector-card${selectedKey === draft.key ? ' service-selector-card-selected' : ''}`}
+                                    aria-pressed={selectedKey === draft.key}
+                                    onClick={() => setSelectedKey(draft.key)}
+                                >
+                                    {draft.imageUrls[0] ? (
+                                        <img
+                                            src={getServiceImageSource(draft.imageUrls[0])}
+                                            alt=""
+                                            loading="lazy"
+                                        />
+                                    ) : (
+                                        <span className="service-selector-placeholder" aria-hidden="true">SL</span>
+                                    )}
+                                    <span>{draft.name.trim() || 'New lash set'}</span>
+                                    {!draft.isActive && <small>Inactive</small>}
+                                </button>
+                            ))}
+                        </div>
+                        <button
+                            type="button"
+                            className="service-selector-arrow"
+                            aria-label="Scroll lash sets right"
+                            onClick={() => scrollServices(1)}
+                        >
+                            ›
+                        </button>
+                    </div>
+
+                    {selectedDraft && (
                     <form
-                        className={`service-management-card${draft.isActive ? '' : ' service-management-card-inactive'}`}
-                        key={draft.key}
-                        onSubmit={(event) => saveService(event, draft)}
+                        className={`service-management-card${selectedDraft.isActive ? '' : ' service-management-card-inactive'}`}
+                        key={selectedDraft.key}
+                        onSubmit={(event) => saveService(event, selectedDraft)}
                     >
                         <div className="service-management-card-heading">
-                            <h3>{draft.name.trim() || 'New lash set'}</h3>
-                            <label className="service-active-toggle">
-                                <input
-                                    type="checkbox"
-                                    checked={draft.isActive}
-                                    onChange={(event) => {
-                                        if (!event.target.checked && !draft.fullServiceId) {
-                                            updateDraft(draft.key, { isActive: false });
-                                            return;
-                                        }
-                                        updateDraft(draft.key, { isActive: event.target.checked });
-                                    }}
-                                />
-                                Active
-                            </label>
+                            <div>
+                                <p className="eyebrow">Selected lash set</p>
+                                <h3>{selectedDraft.name.trim() || 'New lash set'}</h3>
+                            </div>
                         </div>
 
-                        <div className="service-management-fields">
-                            <label>
-                                Service name
-                                <input
-                                    value={draft.name}
-                                    maxLength="100"
-                                    onChange={(event) => updateDraft(draft.key, { name: event.target.value })}
-                                    required
-                                />
-                            </label>
-                            <label>
-                                Full set price
-                                <input
-                                    type="number"
-                                    min="0"
-                                    step="0.01"
-                                    value={draft.fullSetPrice}
-                                    onChange={(event) => updateDraft(draft.key, { fullSetPrice: event.target.value })}
-                                    placeholder="Price TBD"
-                                />
-                            </label>
-                            <label>
-                                2-week refill price
-                                <input
-                                    type="number"
-                                    min="0"
-                                    step="0.01"
-                                    value={draft.refillTwoWeekPrice}
-                                    onChange={(event) => updateDraft(draft.key, { refillTwoWeekPrice: event.target.value })}
-                                    placeholder="Price TBD"
-                                />
-                            </label>
-                            <label>
-                                3-week refill price
-                                <input
-                                    type="number"
-                                    min="0"
-                                    step="0.01"
-                                    value={draft.refillThreeWeekPrice}
-                                    onChange={(event) => updateDraft(draft.key, { refillThreeWeekPrice: event.target.value })}
-                                    placeholder="Price TBD"
-                                />
-                            </label>
-                            <label>
-                                Full set duration (minutes)
-                                <input
-                                    type="number"
-                                    min="1"
-                                    max="1440"
-                                    value={draft.fullSetDuration}
-                                    onChange={(event) => updateDraft(draft.key, { fullSetDuration: event.target.value })}
-                                />
-                            </label>
-                            <label>
-                                Refill duration (minutes)
-                                <input
-                                    type="number"
-                                    min="1"
-                                    max="1440"
-                                    value={draft.refillDuration}
-                                    onChange={(event) => updateDraft(draft.key, { refillDuration: event.target.value })}
-                                />
-                            </label>
-                            <label className="service-description-field">
-                                Description
-                                <textarea
-                                    rows="3"
-                                    value={draft.description}
-                                    onChange={(event) => updateDraft(draft.key, { description: event.target.value })}
-                                />
-                            </label>
-                        </div>
+                        <details className="service-editor-section">
+                            <summary>Service Details</summary>
+                            <div className="service-management-fields">
+                                <label>
+                                    Service name
+                                    <input
+                                        value={selectedDraft.name}
+                                        maxLength="100"
+                                        onChange={(event) => updateDraft(selectedDraft.key, { name: event.target.value })}
+                                        required
+                                    />
+                                </label>
+                                <label className="service-description-field">
+                                    Description
+                                    <textarea
+                                        rows="3"
+                                        value={selectedDraft.description}
+                                        onChange={(event) => updateDraft(selectedDraft.key, { description: event.target.value })}
+                                    />
+                                </label>
+                            </div>
+                        </details>
 
-                        <fieldset className="service-images-field">
+                        <details className="service-editor-section" open>
+                            <summary>Pricing</summary>
+                            <div className="service-management-fields">
+                                <label>
+                                    Full set price
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        step="0.01"
+                                        value={selectedDraft.fullSetPrice}
+                                        onChange={(event) => updateDraft(selectedDraft.key, { fullSetPrice: event.target.value })}
+                                        placeholder="Price TBD"
+                                    />
+                                </label>
+                                <label>
+                                    2-week refill price
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        step="0.01"
+                                        value={selectedDraft.refillTwoWeekPrice}
+                                        onChange={(event) => updateDraft(selectedDraft.key, { refillTwoWeekPrice: event.target.value })}
+                                        placeholder="Price TBD"
+                                    />
+                                </label>
+                                <label>
+                                    3-week refill price
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        step="0.01"
+                                        value={selectedDraft.refillThreeWeekPrice}
+                                        onChange={(event) => updateDraft(selectedDraft.key, { refillThreeWeekPrice: event.target.value })}
+                                        placeholder="Price TBD"
+                                    />
+                                </label>
+                            </div>
+                        </details>
+
+                        <details className="service-editor-section">
+                            <summary>Service Photos</summary>
+                            <fieldset className="service-images-field">
                             <legend>Service photos</legend>
                             <div className="service-image-library">
-                                <p>Select existing LashSet photos</p>
-                                <div className="service-image-library-options">
-                                    {AVAILABLE_LASH_IMAGES.map((image) => (
-                                        <label key={image.name}>
-                                            <input
-                                                type="checkbox"
-                                                checked={draft.imageUrls.includes(image.url)}
-                                                onChange={(event) => updateDraft(draft.key, {
-                                                    imageUrls: event.target.checked
-                                                        ? [...draft.imageUrls, image.url]
-                                                        : draft.imageUrls.filter((url) => url !== image.url)
-                                                })}
-                                            />
-                                            {image.name}
-                                        </label>
-                                    ))}
+                                <label className="service-photo-category">
+                                    Select lash set
+                                    <select
+                                        value={selectedCategory}
+                                        onChange={(event) => setPhotoCategories((current) => ({
+                                            ...current,
+                                            [selectedDraft.key]: event.target.value
+                                        }))}
+                                    >
+                                        {LASH_PHOTO_CATEGORIES.map((category) => (
+                                            <option value={category.name} key={category.name}>{category.name}</option>
+                                        ))}
+                                    </select>
+                                </label>
+                                <div className="service-image-library-grid">
+                                    {categoryImages.map((image) => {
+                                        const selected = selectedDraft.imageUrls.includes(image.url);
+                                        const index = selectedDraft.imageUrls.indexOf(image.url);
+                                        return (
+                                            <label
+                                                className={`service-image-option${selected ? ' service-image-option-selected' : ''}`}
+                                                key={image.url}
+                                            >
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selected}
+                                                    onChange={(event) => updateDraft(selectedDraft.key, {
+                                                        imageUrls: event.target.checked
+                                                            ? [...selectedDraft.imageUrls, image.url]
+                                                            : selectedDraft.imageUrls.filter((url) => url !== image.url)
+                                                    })}
+                                                />
+                                                <img src={image.url} alt="" loading="lazy" />
+                                                <span>{image.label}</span>
+                                                {selected && index === 0 && <strong>Primary</strong>}
+                                            </label>
+                                        );
+                                    })}
+                                    {categoryImages.length === 0 && (
+                                        <p className="service-photo-empty">
+                                            No existing photos for this lash set. Upload a photo below to add a preview.
+                                        </p>
+                                    )}
                                 </div>
                             </div>
                             <div className="service-image-previews">
-                                {draft.imageUrls.map((image) => (
+                                <h4>Selected photos · first photo is shown as primary</h4>
+                                {selectedDraft.imageUrls.length === 0 && <p>No photos selected yet.</p>}
+                                {selectedDraft.imageUrls.map((image, index) => (
                                     <div className="service-image-preview" key={image}>
-                                        <img src={getServiceImageSource(image)} alt={`${draft.name || 'Service'} preview`} />
-                                        <button
-                                            type="button"
-                                            className="small-button"
-                                            onClick={() => updateDraft(draft.key, {
-                                                imageUrls: draft.imageUrls.filter((item) => item !== image)
-                                            })}
-                                        >
-                                            Remove photo
-                                        </button>
+                                        <img src={getServiceImageSource(image)} alt={`${selectedDraft.name || 'Service'} preview ${index + 1}`} />
+                                        <span>{index === 0 ? 'Primary photo' : `Photo ${index + 1}`}</span>
+                                        <div className="service-image-preview-actions">
+                                            <button
+                                                type="button"
+                                                className="small-button"
+                                                disabled={index === 0}
+                                                onClick={() => updateDraft(selectedDraft.key, {
+                                                    imageUrls: [image, ...selectedDraft.imageUrls.filter((item) => item !== image)]
+                                                })}
+                                            >
+                                                Make primary
+                                            </button>
+                                            <button
+                                                type="button"
+                                                className="small-button"
+                                                disabled={index === 0}
+                                                aria-label={`Move photo ${index + 1} earlier`}
+                                                onClick={() => {
+                                                    const next = [...selectedDraft.imageUrls];
+                                                    [next[index - 1], next[index]] = [next[index], next[index - 1]];
+                                                    updateDraft(selectedDraft.key, { imageUrls: next });
+                                                }}
+                                            >
+                                                Move left
+                                            </button>
+                                            <button
+                                                type="button"
+                                                className="small-button"
+                                                disabled={index === selectedDraft.imageUrls.length - 1}
+                                                aria-label={`Move photo ${index + 1} later`}
+                                                onClick={() => {
+                                                    const next = [...selectedDraft.imageUrls];
+                                                    [next[index], next[index + 1]] = [next[index + 1], next[index]];
+                                                    updateDraft(selectedDraft.key, { imageUrls: next });
+                                                }}
+                                            >
+                                                Move right
+                                            </button>
+                                            <button
+                                                type="button"
+                                                className="small-button"
+                                                onClick={() => updateDraft(selectedDraft.key, {
+                                                    imageUrls: selectedDraft.imageUrls.filter((item) => item !== image)
+                                                })}
+                                            >
+                                                Remove from service
+                                            </button>
+                                        </div>
                                     </div>
                                 ))}
                             </div>
@@ -359,26 +534,70 @@ export default function ServicesManagement() {
                                     type="file"
                                     accept="image/jpeg,image/png,image/webp,image/gif"
                                     multiple
-                                    disabled={!isSupabaseConfigured || uploadingKey === draft.key}
+                                    disabled={!isSupabaseConfigured || uploadingKey === selectedDraft.key}
                                     onChange={(event) => {
-                                        uploadImages(draft, Array.from(event.target.files ?? []));
+                                        uploadImages(selectedDraft, Array.from(event.target.files ?? []));
                                         event.target.value = '';
                                     }}
                                 />
                             </label>
-                            {uploadingKey === draft.key && <span role="status">Uploading photos…</span>}
-                        </fieldset>
+                            {uploadingKey === selectedDraft.key && <span role="status">Uploading photos…</span>}
+                            </fieldset>
+                        </details>
 
-                        <button
-                            type="submit"
-                            className="btn service-save-button"
-                            disabled={!isSupabaseConfigured || savingKey === draft.key || uploadingKey === draft.key}
-                        >
-                            {savingKey === draft.key ? 'Saving…' : 'Save service'}
-                        </button>
+                        <details className="service-editor-section">
+                            <summary>Advanced Settings</summary>
+                            <div className="service-management-fields">
+                                <label>
+                                    Full set duration (minutes)
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        max="1440"
+                                        value={selectedDraft.fullSetDuration}
+                                        onChange={(event) => updateDraft(selectedDraft.key, { fullSetDuration: event.target.value })}
+                                    />
+                                </label>
+                                <label>
+                                    Refill duration (minutes)
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        max="1440"
+                                        value={selectedDraft.refillDuration}
+                                        onChange={(event) => updateDraft(selectedDraft.key, { refillDuration: event.target.value })}
+                                    />
+                                </label>
+                                <label className="service-active-toggle">
+                                    <input
+                                        type="checkbox"
+                                        checked={selectedDraft.isActive}
+                                        onChange={(event) => updateDraft(selectedDraft.key, { isActive: event.target.checked })}
+                                    />
+                                    Active service
+                                </label>
+                            </div>
+                        </details>
+
+                        <div className="service-editor-actions">
+                            <button
+                                type="submit"
+                                className="btn service-save-button"
+                                disabled={!isSupabaseConfigured || savingKey === selectedDraft.key || uploadingKey === selectedDraft.key}
+                            >
+                                {savingKey === selectedDraft.key ? 'Saving…' : 'Save changes'}
+                            </button>
+                            {!selectedDraft.fullServiceId && (
+                                <span className="service-unsaved-note">New service · Save to add to the shared catalog</span>
+                            )}
+                            {selectedExistingService && !selectedExistingService.is_active && (
+                                <span className="service-unsaved-note">This service is currently inactive.</span>
+                            )}
+                        </div>
                     </form>
-                ))}
-            </div>
+                    )}
+                </div>
+            )}
         </section>
     );
 }

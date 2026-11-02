@@ -1,3 +1,4 @@
+// Build the ordered photo URLs used by the home-page slideshow.
 const homePhotoCount = 6;
 const homePhotos = Array.from(
     { length: homePhotoCount },
