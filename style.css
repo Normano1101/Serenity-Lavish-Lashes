@@ -1,6 +1,13 @@
-/* Load global reset, navigation, hero, portfolio, and page-section styles. */
+/* Load global reset, app shell, hero, portfolio, and page-section styles. */
 @import url('css/reset.css');
-@import url('css/navbar.css');
+@import url('css/app-shell.css');
+@import url('css/footer.css');
 @import url('css/hero.css');
 @import url('css/portfolio.css');
 @import url('css/sections.css');
+@import url('css/pricing.css');
+@import url('css/booking.css');
+@import url('css/admin-auth.css');
+@import url('css/booking-responsive.css');
+@import url('css/reviews.css');
+@import url('css/content-responsive.css');

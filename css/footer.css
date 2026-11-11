@@ -1,0 +1,27 @@
+/* Site footer with the Instagram link and copyright line. */
+.footer {
+    display: grid;
+    justify-items: center;
+    gap: 10px;
+    padding: 24px 16px 28px;
+    border-top: 1px solid #e8cdda;
+    color: #77636e;
+    font-size: 0.8rem;
+    text-align: center;
+}
+
+.instagram-link {
+    display: inline-grid;
+    justify-items: center;
+    gap: 6px;
+    color: #69284f;
+    font-size: 0.88rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: color 140ms ease;
+}
+
+.instagram-link:hover,
+.instagram-link:focus-visible {
+    color: #d96f9a;
+}

@@ -1,0 +1,325 @@
+/* Sidebar and workspace layout shared by every page, public and admin. */
+.app-shell {
+    display: grid;
+    grid-template-columns: clamp(112px, 14vw, 200px) minmax(0, 1fr);
+    min-height: 100vh;
+    background: #f7f3f5;
+    color: #30232c;
+}
+
+.app-sidebar {
+    position: sticky;
+    top: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    height: 100vh;
+    padding: 24px 16px 18px;
+    background: linear-gradient(160deg, #552842 0%, #301a2e 100%);
+    color: #fff8fb;
+}
+
+.app-brand {
+    display: grid;
+    justify-items: center;
+    gap: 1px;
+    padding: 2px 6px 6px;
+    color: #fff8fb;
+    font-family: Georgia, serif;
+    font-size: 1.22rem;
+    font-style: italic;
+    line-height: 1.1;
+    text-align: center;
+    text-decoration: none;
+}
+
+.app-brand strong {
+    color: #f5b8d0;
+    font-size: 0.96rem;
+}
+
+.app-sidebar-menu {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: 12px;
+    min-height: 0;
+}
+
+.app-menu-toggle {
+    display: none;
+}
+
+.app-sidebar-role {
+    align-self: center;
+    padding: 3px 11px;
+    border: 1px solid rgba(255, 232, 241, 0.42);
+    border-radius: 999px;
+    color: #f7d8e4;
+    font-size: 0.72rem;
+}
+
+.app-side-nav {
+    display: grid;
+    gap: 5px;
+    margin-top: 12px;
+}
+
+.app-side-nav a,
+.app-sidebar-footer button {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 38px;
+    padding: 8px 10px;
+    border: 0;
+    border-radius: 9px;
+    background: transparent;
+    color: #f6eaf0;
+    font: inherit;
+    font-size: 0.88rem;
+    text-align: left;
+    text-decoration: none;
+    transition: background 140ms ease, color 140ms ease;
+}
+
+.app-side-nav a:hover,
+.app-sidebar-footer button:hover {
+    background: rgba(255, 255, 255, 0.11);
+}
+
+.app-side-nav a.is-active {
+    background: #d96f9a;
+    color: #fff;
+    font-weight: 700;
+}
+
+.app-side-nav svg,
+.app-sidebar-footer svg {
+    flex: 0 0 auto;
+    font-size: 1rem;
+}
+
+.app-sidebar-footer {
+    display: grid;
+    gap: 7px;
+    margin-top: auto;
+}
+
+.app-sidebar-footer a {
+    padding: 8px 10px;
+    color: #f5cadd;
+    font-size: 0.8rem;
+    text-decoration: none;
+}
+
+.app-sidebar-footer button {
+    cursor: pointer;
+}
+
+.app-main {
+    min-width: 0;
+}
+
+/* Public page container and title block, matching the admin dashboard's spacing and type. */
+.site-page {
+    width: min(1440px, 100%);
+    margin: 0 auto;
+    padding: 22px 26px 56px;
+    color: #21171d;
+}
+
+.page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 16px;
+    font-family: Arial, sans-serif;
+}
+
+.page-header h1 {
+    margin-top: 1px;
+    color: #34202e;
+    font-size: clamp(1.55rem, 2.5vw, 2rem);
+}
+
+.page-header .eyebrow {
+    margin: 0 0 3px;
+    font-size: 0.68rem;
+}
+
+.page-header-subtitle {
+    max-width: 72ch;
+    margin-top: 3px;
+    color: #77636e;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+.page-header-action {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    min-height: 40px;
+    padding: 8px 15px;
+    border-radius: 9px;
+    background: #69284f;
+    color: white;
+    font-size: 0.84rem;
+    font-weight: 700;
+    text-decoration: none;
+    box-shadow: 0 3px 9px rgba(67, 25, 50, 0.14);
+    transition: background 140ms ease;
+}
+
+.page-header-action:hover {
+    background: #7f315f;
+}
+
+/* Small secondary button used on public and admin pages. */
+.small-button {
+    padding: 6px 9px;
+    border: 1px solid #db91b0;
+    border-radius: 7px;
+    background: #fff7fa;
+    color: #742044;
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.83rem;
+}
+
+.small-button:hover {
+    background: #fce3ed;
+}
+
+/* Tablet: keep the narrow sidebar readable. */
+@media (min-width: 641px) and (max-width: 760px) {
+    .app-sidebar {
+        padding-right: 6px;
+        padding-left: 6px;
+    }
+
+    .app-brand {
+        font-size: 0.84rem;
+    }
+
+    .app-brand strong {
+        font-size: 0.68rem;
+    }
+
+    .app-sidebar-role {
+        padding: 3px 7px;
+        font-size: 0.6rem;
+    }
+
+    .app-side-nav a {
+        gap: 5px;
+        padding: 7px 4px;
+        font-size: 0.64rem;
+    }
+
+    .app-side-nav a svg {
+        width: 13px;
+        height: 13px;
+    }
+}
+
+/* Phone: the sidebar becomes a sticky top bar with a scrolling nav. */
+@media (max-width: 640px) {
+    .app-shell {
+        display: block;
+    }
+
+    .site-page {
+        padding: 15px 12px 40px;
+    }
+
+    .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .page-header h1 {
+        font-size: 1.28rem;
+    }
+
+    .page-header-subtitle {
+        font-size: 0.84rem;
+    }
+
+    .app-sidebar {
+        position: sticky;
+        z-index: 20;
+        top: 0;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 0 12px;
+        width: 100%;
+        height: auto;
+        max-height: 100vh;
+        max-height: 100dvh;
+        padding: 8px 12px;
+        overflow-y: auto;
+        box-shadow: 0 3px 12px rgba(37, 21, 33, 0.14);
+    }
+
+    .app-brand {
+        justify-items: start;
+        justify-self: start;
+        padding: 2px 6px;
+        font-size: 0.9rem;
+    }
+
+    .app-brand strong {
+        font-size: 0.75rem;
+    }
+
+    .app-menu-toggle {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 42px;
+        height: 42px;
+        padding: 0;
+        border: 1px solid rgba(255, 232, 241, 0.35);
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.06);
+        color: #fff8fb;
+        font-size: 1.3rem;
+        cursor: pointer;
+    }
+
+    .app-sidebar-menu {
+        display: none;
+        grid-column: 1 / -1;
+        gap: 10px;
+        padding: 12px 0 6px;
+    }
+
+    .app-sidebar.is-menu-open .app-sidebar-menu {
+        display: flex;
+    }
+
+    .app-sidebar-role {
+        align-self: flex-start;
+    }
+
+    .app-side-nav {
+        margin: 0;
+    }
+
+    .app-side-nav a,
+    .app-sidebar-footer button {
+        min-height: 44px;
+        font-size: 0.95rem;
+    }
+
+    .app-sidebar-footer {
+        margin-top: 4px;
+        padding-top: 10px;
+        border-top: 1px solid rgba(255, 232, 241, 0.2);
+    }
+}

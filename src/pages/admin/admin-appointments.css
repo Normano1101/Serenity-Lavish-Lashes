@@ -1,0 +1,232 @@
+/* Appointment table and booking action styles. */
+/* Appointment table, status badges, and per-appointment actions. */
+.admin-table-wrap {
+    width: 100%;
+    min-width: 0;
+    overflow-x: auto;
+}
+
+.appointments-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.appointments-table th,
+.appointments-table td {
+    padding: 13px 10px;
+    border-bottom: 1px solid #f0dce4;
+    vertical-align: top;
+}
+
+.appointments-table th {
+    background: #fff5f8;
+    color: #48343e;
+    white-space: nowrap;
+}
+
+.appointments-table tr.has-conflict {
+    background: #fff1f0;
+}
+
+.status-tag {
+    display: inline-block;
+    padding: 4px 9px;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: capitalize;
+}
+
+.status-pending {
+    background: #fff0c2;
+    color: #704a00;
+}
+
+.status-confirmed {
+    background: #dcf5e3;
+    color: #1c6533;
+}
+
+.status-cancelled {
+    background: #f1e8ec;
+    color: #655761;
+}
+
+.appointment-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    min-width: 210px;
+}
+
+.danger-button {
+    border-color: #d68a8a;
+    color: #8e2020;
+}
+
+.admin-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    margin-top: 16px;
+}
+
+.admin-notes-field {
+    grid-column: 1 / -1;
+}
+
+.admin-form-grid .booking-btn {
+    justify-self: start;
+}
+
+.demo-notice {
+    margin-bottom: 20px;
+    padding: 14px;
+    border-left: 4px solid #b51f55;
+    background: #fff0f4;
+    color: #633649;
+    line-height: 1.5;
+}
+
+.form-message {
+    margin: 16px 0;
+    padding: 14px;
+    border-radius: 10px;
+    line-height: 1.5;
+}
+
+.form-error {
+    border: 1px solid #d58c8c;
+    background: #fff1f0;
+    color: #8c2525;
+}
+
+.form-success {
+    border: 1px solid #9bc6a7;
+    background: #effaf1;
+    color: #245a32;
+}
+
+.form-success p + p,
+.form-success a {
+    display: inline-block;
+    margin-top: 8px;
+}
+
+.form-success a {
+    color: #8b1d4d;
+    font-weight: 700;
+}
+
+.booking-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+}
+
+.appointment-list-controls {
+    display: flex;
+    align-items: end;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.appointment-contact {
+    display: block;
+    margin-top: 4px;
+    color: #705e68;
+    font-size: 0.84rem;
+    overflow-wrap: anywhere;
+}
+
+.appointments-date-context {
+    margin: 14px 0 0;
+    color: #6f5c66;
+    font-size: 0.87rem;
+}
+
+.appointment-editor {
+    margin-bottom: 20px;
+    padding: clamp(16px, 2.5vw, 22px);
+    border: 1px solid #e8c2d1;
+    border-radius: 14px;
+    background: #fff8fb;
+}
+
+.appointment-editor-backdrop {
+    position: fixed;
+    z-index: 100;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: 18px;
+    overflow-y: auto;
+    background: rgba(36, 20, 31, 0.5);
+}
+
+.appointment-editor-backdrop .appointment-editor {
+    width: min(660px, 100%);
+    max-height: calc(100vh - 36px);
+    margin: auto;
+    overflow-y: auto;
+    background: #fff;
+    box-shadow: 0 18px 70px rgba(34, 17, 29, 0.24);
+}
+
+.appointment-editor-heading {
+    margin-bottom: 14px;
+}
+
+.appointment-editor-heading h3 {
+    margin: 0;
+    color: #482d3a;
+}
+
+.appointment-editor-form {
+    margin-top: 0;
+}
+
+.appointment-editor-form .admin-notes-field {
+    grid-column: 1 / -1;
+}
+
+.client-details-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin: 0;
+}
+
+.client-details-list > div {
+    min-width: 0;
+}
+
+.client-details-list dt {
+    color: #755e69;
+    font-size: 0.82rem;
+    font-weight: 700;
+}
+
+.client-details-list dd {
+    margin: 3px 0 0;
+    color: #382932;
+    overflow-wrap: anywhere;
+}
+
+.appointment-editor-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 16px;
+}
+
+@media (max-width: 560px) {
+    .appointment-list-controls {
+        align-items: stretch;
+        width: 100%;
+    }
+
+    .client-details-list {
+        grid-template-columns: 1fr;
+    }
+}

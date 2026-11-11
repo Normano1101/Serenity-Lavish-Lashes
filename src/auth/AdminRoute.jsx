@@ -1,40 +1,45 @@
+// The gatekeeper for admin pages: only signed-in owners and super admins get through.
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
+import SiteLayout from '../components/SiteLayout.jsx';
 import { useAuth } from './AuthProvider.jsx';
 
-// Protect admin pages and explain whether access is loading, denied, or allowed.
-export default function AdminRoute({ children, requiredRole }) {
+// A plain page explaining why the admin dashboard isn't showing.
+function AccessMessage({ children }) {
+    return (
+        <SiteLayout>
+            <main className="admin-auth-page">{children}</main>
+        </SiteLayout>
+    );
+}
+
+export default function AdminRoute() {
     const { configured, loading, user, profile, error } = useAuth();
     const location = useLocation();
 
-    if (!configured) return children ?? <Outlet />;
-    if (loading) {
-        return <main className="admin-auth-page"><p role="status">Checking admin access…</p></main>;
-    }
-    if (!user) {
-        return <Navigate to="/admin/login" replace state={{ from: location }} />;
-    }
+    // Demo mode has no accounts, so anyone can view the demo dashboard.
+    if (!configured) return <Outlet />;
+    if (loading) return <AccessMessage><p role="status">Checking admin access…</p></AccessMessage>;
+    if (!user) return <Navigate to="/admin/login" replace state={{ from: location }} />;
+
     if (error || !profile) {
         return (
-            <main className="admin-auth-page">
+            <AccessMessage>
                 <section className="admin-auth-card">
                     <h1>Admin access is not configured</h1>
                     <p role="alert">{error || 'This account does not have an admin profile.'}</p>
                 </section>
-            </main>
+            </AccessMessage>
         );
     }
     if (!['owner', 'super_admin'].includes(profile.role)) {
         return (
-            <main className="admin-auth-page">
+            <AccessMessage>
                 <section className="admin-auth-card">
                     <h1>Admin access has not been granted</h1>
                     <p>Your account is signed in but does not have an admin role. Contact the business administrator.</p>
                 </section>
-            </main>
+            </AccessMessage>
         );
     }
-    if (requiredRole && profile.role !== requiredRole) {
-        return <Navigate to="/admin" replace />;
-    }
-    return children ?? <Outlet />;
+    return <Outlet />;
 }

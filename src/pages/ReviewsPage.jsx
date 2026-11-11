@@ -1,18 +1,13 @@
-import Footer from '../components/Footer.jsx';
+// The reviews page. Only the introduction exists so far; reviews can be added below the header.
+import PageHeader from '../components/PageHeader.jsx';
 
-// Show the reviews page introduction and shared site footer.
 export default function ReviewsPage() {
     return (
-        <>
-            <main className="reviews-page">
-                <header className="reviews-header">
-                    <h1>See What My Clients Are Saying!</h1>
-                    <p>
-                        Hear from real clients about their experiences and results. I take pride in providing quality lash services, and nothing makes me happier than seeing my clients love their lashes! Check out their reviews below.
-                    </p>
-                </header>
-            </main>
-            <Footer />
-        </>
+        <main className="site-page reviews-page">
+            <PageHeader
+                title="See What My Clients Are Saying!"
+                subtitle="Hear from real clients about their experiences and results. I take pride in providing quality lash services, and nothing makes me happier than seeing my clients love their lashes! Check out their reviews below."
+            />
+        </main>
     );
 }

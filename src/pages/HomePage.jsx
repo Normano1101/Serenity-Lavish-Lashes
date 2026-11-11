@@ -1,17 +1,18 @@
+// The home page: a booking button, the photo slideshow, and a link to the portfolio.
 import { Link } from 'react-router-dom';
-import Footer from '../components/Footer.jsx';
 import HomeSlideshow from '../components/HomeSlideshow.jsx';
+import PageHeader from '../components/PageHeader.jsx';
 
-// Present the main booking call to action, slideshow, and portfolio entry point.
 export default function HomePage() {
     return (
-        <>
+        <main className="site-page">
+            <PageHeader
+                title="Luxury Lash Extensions"
+                subtitle="Enhance your natural beauty with lashes designed just for you."
+            >
+                <Link to="/booking" className="page-header-action">Book Your Appointment</Link>
+            </PageHeader>
             <section className="hero">
-                <div className="hero-content">
-                    <h1>Luxury Lash Extensions</h1>
-                    <p>Enhance your natural beauty with lashes designed just for you.</p>
-                    <Link to="/booking" className="btn">Book Your Appointment</Link>
-                </div>
                 <HomeSlideshow />
             </section>
 
@@ -23,7 +24,6 @@ export default function HomePage() {
                 </p>
                 <Link to="/portfolio" className="btn">View My Work</Link>
             </section>
-            <Footer />
-        </>
+        </main>
     );
 }

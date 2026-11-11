@@ -1,13 +1,13 @@
-import Footer from '../components/Footer.jsx';
+// The about page: a photo and a short bio of the lash artist.
+import PageHeader from '../components/PageHeader.jsx';
 
-// Introduce the lash artist and provide a consistent site footer.
 export default function AboutPage() {
     return (
-        <>
-            <main className="about-page">
+        <main className="site-page">
+            <PageHeader title="About Me" />
+            <div className="about-page">
                 <img className="about-photo" src="/assets/Pictures/About.JPG" alt="Serenity Lavish Lashes owner" />
                 <section className="about-content">
-                    <h1>About Me</h1>
                     <p>
                         Ever since I was young, I’ve been fascinated by the beauty of eyelashes and how
                         they enhance a person’s look. In 2023, I became a licensed lash technician, turning
@@ -21,8 +21,7 @@ export default function AboutPage() {
                         enhancing your lashes and giving you a confidence boost with every blink.
                     </p>
                 </section>
-            </main>
-            <Footer />
-        </>
+            </div>
+        </main>
     );
 }

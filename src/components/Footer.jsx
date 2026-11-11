@@ -1,7 +1,7 @@
 import { FaInstagram } from 'react-icons/fa';
 
-// Show the studio's social link and the supplied (or default) copyright text.
-export default function Footer({ copyright = 'All content Copyright © 2026 Serenity Lavish Lashes' }) {
+// The bottom of every public page: the Instagram link and copyright line.
+export default function Footer() {
     return (
         <footer className="footer">
             <a
@@ -11,11 +11,11 @@ export default function Footer({ copyright = 'All content Copyright © 2026 Sere
                 aria-label="Visit our Instagram"
                 className="instagram-link"
             >
-                <FaInstagram size={56} />
+                <FaInstagram size={32} aria-hidden="true" />
                 <p>Check out my Instagram</p>
             </a>
 
-            <p>{copyright}</p>
+            <p>All content Copyright © 2026 Serenity Lavish Lashes</p>
         </footer>
     );
 }

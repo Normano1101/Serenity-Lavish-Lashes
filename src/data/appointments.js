@@ -1,31 +1,24 @@
-// Keep demo appointments and settings in separate, versioned browser-storage lists.
+// Demo-mode appointment system: appointments and settings saved in the browser's
+// localStorage, plus the rules that work out which times are free. The live site uses
+// Supabase for its data (see adminAppointments.js).
+import { dateAfterDays, minutesToTime, toMinutes } from './dates.js';
+
 const STORAGE_KEYS = {
     samples: 'serenity-demo-sample-appointments-v1',
     customer: 'serenity-demo-customer-appointments-v1',
     manual: 'serenity-demo-manual-appointments-v1',
     settings: 'serenity-demo-booking-settings-v1'
 };
+const APPOINTMENT_LISTS = [STORAGE_KEYS.samples, STORAGE_KEYS.customer, STORAGE_KEYS.manual];
+const CHANGED_EVENT = 'serenity-demo-appointments-changed';
 
-// Build the demo service choices and the status labels used by booking/admin views.
 export const LASH_STYLES = ['Classic', 'Wet', 'Hybrid', 'Volume', 'Wispy', 'Anime'];
-export const SERVICE_TYPES = ['Full Set', 'Fill'];
-export const LEGACY_SERVICES = LASH_STYLES;
-export const SERVICES = LASH_STYLES.flatMap((style) =>
-    SERVICE_TYPES.map((type) => `${style} ${type}`)
-);
-export const WEEKDAYS = [
-    { key: '0', label: 'Sunday' },
-    { key: '1', label: 'Monday' },
-    { key: '2', label: 'Tuesday' },
-    { key: '3', label: 'Wednesday' },
-    { key: '4', label: 'Thursday' },
-    { key: '5', label: 'Friday' },
-    { key: '6', label: 'Saturday' }
-];
-export const APPOINTMENT_STATUSES = ['pending', 'confirmed', 'cancelled'];
-export const APPOINTMENTS_CHANGED_EVENT = 'serenity-demo-appointments-changed';
+// Every style comes as a full set and a fill: 'Classic Full Set', 'Classic Fill', ...
+export const SERVICES = LASH_STYLES.flatMap((style) => [`${style} Full Set`, `${style} Fill`]);
+export const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+    .map((label, index) => ({ key: String(index), label }));
 
-// Starter hours for local demo mode; admins can replace them in the schedule screen.
+// Starting opening hours for demo mode. Keys are days of the week; '0' is Sunday.
 const DEFAULT_SCHEDULE = {
     '0': { enabled: false, open: '09:00', close: '17:00', breaks: [] },
     '1': { enabled: true, open: '09:00', close: '17:00', breaks: [] },
@@ -36,92 +29,24 @@ const DEFAULT_SCHEDULE = {
     '6': { enabled: true, open: '10:00', close: '15:00', breaks: [] }
 };
 
-// Create a fresh settings object without sharing mutable service defaults.
-export function createDefaultSettings() {
-    return {
-        schedule: DEFAULT_SCHEDULE,
-        interval: 30,
-        services: {
-            ...Object.fromEntries(LEGACY_SERVICES.map((name) => [
-                name,
-                { active: false, duration: '', price: '' }
-            ])),
-            ...Object.fromEntries(SERVICES.map((name) => [
-                name,
-                {
-                    active: true,
-                    duration: name.endsWith('Full Set') ? '210' : '150',
-                    price: ''
-                }
-            ]))
-        },
-        dateRules: []
-    };
-}
-
-// Format local calendar dates as stable YYYY-MM-DD keys.
-export function formatDateKey(date) {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-}
-
-// Format a date in the studio's configured timezone instead of the browser timezone.
-export function getDateKeyInTimeZone(date, timeZone) {
-    const parts = new Intl.DateTimeFormat('en-US', {
-        timeZone,
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit'
-    }).formatToParts(date);
-    const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
-    return `${values.year}-${values.month}-${values.day}`;
-}
-
-// Return the local calendar date a given number of days from now.
-export function dateAfterDays(days) {
-    const date = new Date();
-    date.setDate(date.getDate() + days);
-    return formatDateKey(date);
-}
-
-// Convert a stored date key to a readable locale-specific date.
-export function formatDate(dateKey, options = { year: 'numeric', month: 'short', day: 'numeric' }) {
-    return new Date(`${dateKey}T00:00:00`).toLocaleDateString(undefined, options);
-}
-
-// Display 24-hour database/storage times in the visitor's locale.
-export function formatTime(time) {
-    const [hour, minute] = time.split(':').map(Number);
-    return new Date(2000, 0, 1, hour, minute).toLocaleTimeString(undefined, {
-        hour: 'numeric',
-        minute: '2-digit'
+function createDefaultServices() {
+    const services = {};
+    // Old appointments used the plain style name, so keep those entries (switched off).
+    LASH_STYLES.forEach((name) => {
+        services[name] = { active: false, duration: '', price: '' };
     });
+    SERVICES.forEach((name) => {
+        services[name] = { active: true, duration: name.endsWith('Full Set') ? '210' : '150', price: '' };
+    });
+    return services;
 }
 
-// Present minute counts as hours where that improves readability.
-export function formatDuration(minutes) {
-    const duration = Number(minutes);
-    if (!Number.isFinite(duration) || duration <= 0) return '';
-    if (duration % 60 === 0) {
-        const hours = duration / 60;
-        return `${hours} ${hours === 1 ? 'hour' : 'hours'}`;
-    }
-    if (duration > 60 && duration % 30 === 0) {
-        return `${(duration / 60).toFixed(1)} hours`;
-    }
-    return `${duration} minutes`;
+function createDefaultSettings() {
+    return { schedule: DEFAULT_SCHEDULE, interval: 30, services: createDefaultServices(), dateRules: [] };
 }
 
-// Convert an HH:mm value to minutes after midnight for range comparisons.
-export function toMinutes(time) {
-    if (!time) return 0;
-    const [hours, minutes] = time.split(':').map(Number);
-    return hours * 60 + minutes;
-}
+// --- Reading and writing localStorage ---
 
-// Read and validate one appointment list from local storage.
 function readList(key) {
     const value = window.localStorage.getItem(key);
     if (value === null) return [];
@@ -135,14 +60,14 @@ function readList(key) {
     }
 }
 
-// Save local data and notify components in this tab to refresh.
+// Save a value and tell the rest of the page that the data changed.
 function writeValue(key, value) {
     window.localStorage.setItem(key, JSON.stringify(value));
-    window.dispatchEvent(new Event(APPOINTMENTS_CHANGED_EVENT));
+    window.dispatchEvent(new Event(CHANGED_EVENT));
 }
 
-// Merge saved settings over defaults so newly added options have safe values.
-function readSettingsValue() {
+// Saved settings go on top of the defaults, so any newly added option still has a value.
+export function getBookingSettings() {
     const value = window.localStorage.getItem(STORAGE_KEYS.settings);
     if (value === null) return createDefaultSettings();
 
@@ -152,7 +77,7 @@ function readSettingsValue() {
             ...createDefaultSettings(),
             ...saved,
             schedule: { ...DEFAULT_SCHEDULE, ...saved.schedule },
-            services: { ...createDefaultSettings().services, ...saved.services },
+            services: { ...createDefaultServices(), ...saved.services },
             dateRules: Array.isArray(saved.dateRules) ? saved.dateRules : []
         };
     } catch (error) {
@@ -160,62 +85,52 @@ function readSettingsValue() {
     }
 }
 
-// Return the normalized local demo booking settings.
-export function getBookingSettings() {
-    return readSettingsValue();
-}
-
-// Persist the local demo schedule and notify listeners.
 export function saveBookingSettings(settings) {
     writeValue(STORAGE_KEYS.settings, settings);
 }
 
-// Supply clearly fictional records so the empty demo dashboard is understandable.
+// The demo services that are switched on and have a duration.
+export function getActiveDemoServiceNames(settings) {
+    return SERVICES.filter((name) => settings.services[name]?.active && Number(settings.services[name].duration) > 0);
+}
+
+// Run onChange when demo data changes in this tab or another one. Returns a function that stops listening.
+export function subscribeToAppointments(onChange) {
+    const refresh = () => onChange();
+    window.addEventListener(CHANGED_EVENT, refresh);
+    window.addEventListener('storage', refresh);
+    return () => {
+        window.removeEventListener(CHANGED_EVENT, refresh);
+        window.removeEventListener('storage', refresh);
+    };
+}
+
+// --- Demo appointments ---
+
+// Clearly fake records, so the demo dashboard isn't empty on first use.
 function createSampleAppointments() {
+    const sample = (id, letter, phone, service, daysAhead, time, status, notes) => ({
+        id,
+        name: `SAMPLE — Demo Client ${letter}`,
+        email: `demo-${letter.toLowerCase()}@example.invalid`,
+        phone,
+        service,
+        duration: 60,
+        date: dateAfterDays(daysAhead),
+        time,
+        status,
+        source: 'sample',
+        notes
+    });
+
     return [
-        {
-            id: 'sample-today',
-            name: 'SAMPLE — Demo Client A',
-            email: 'demo-a@example.invalid',
-            phone: '555-0100',
-            service: 'Classic',
-            duration: 60,
-            date: dateAfterDays(0),
-            time: '17:00',
-            status: 'confirmed',
-            source: 'sample',
-            notes: 'Fictional sample appointment.'
-        },
-        {
-            id: 'sample-upcoming',
-            name: 'SAMPLE — Demo Client B',
-            email: 'demo-b@example.invalid',
-            phone: '555-0101',
-            service: 'Volume',
-            duration: 60,
-            date: dateAfterDays(1),
-            time: '11:00',
-            status: 'pending',
-            source: 'sample',
-            notes: 'Fictional sample appointment.'
-        },
-        {
-            id: 'sample-cancelled',
-            name: 'SAMPLE — Demo Client C',
-            email: 'demo-c@example.invalid',
-            phone: '555-0102',
-            service: 'Wet',
-            duration: 60,
-            date: dateAfterDays(3),
-            time: '14:00',
-            status: 'cancelled',
-            source: 'sample',
-            notes: 'Fictional cancelled sample.'
-        }
+        sample('sample-today', 'A', '555-0100', 'Classic', 0, '17:00', 'confirmed', 'Fictional sample appointment.'),
+        sample('sample-upcoming', 'B', '555-0101', 'Volume', 1, '11:00', 'pending', 'Fictional sample appointment.'),
+        sample('sample-cancelled', 'C', '555-0102', 'Wet', 3, '14:00', 'cancelled', 'Fictional cancelled sample.')
     ];
 }
 
-// Seed demo appointments and schedule once without replacing saved user data.
+// Add the starter data once, without ever replacing anything already saved.
 function initializeDemoData() {
     if (window.localStorage.getItem(STORAGE_KEYS.samples) === null) {
         writeValue(STORAGE_KEYS.samples, createSampleAppointments());
@@ -225,26 +140,21 @@ function initializeDemoData() {
     }
 }
 
-// Combine demo, customer, and manually entered records into chronological order.
+// All demo appointments, earliest first.
 export function getAppointments() {
     initializeDemoData();
-    return [
-        ...readList(STORAGE_KEYS.samples),
-        ...readList(STORAGE_KEYS.customer),
-        ...readList(STORAGE_KEYS.manual)
-    ].sort((first, second) =>
+    return APPOINTMENT_LISTS.flatMap(readList).sort((first, second) =>
         `${first.date} ${first.time}`.localeCompare(`${second.date} ${second.time}`)
     );
 }
 
-// Route a new appointment to the local list that matches its origin.
 function storageKeyForSource(source) {
     if (source === 'sample') return STORAGE_KEYS.samples;
     if (source === 'manual') return STORAGE_KEYS.manual;
     return STORAGE_KEYS.customer;
 }
 
-// Validate a local demo booking against current hours before saving it.
+// Save a new appointment, after checking its time is still free.
 export function saveAppointment(appointment) {
     const settings = getBookingSettings();
     const service = settings.services[appointment.service];
@@ -265,33 +175,22 @@ export function saveAppointment(appointment) {
     writeValue(key, [...readList(key), { ...appointment, duration }]);
 }
 
-// Update a saved appointment while preserving its existing fields.
 export function updateAppointment(id, updates) {
-    const key = Object.values(STORAGE_KEYS).find((storageKey) =>
-        storageKey !== STORAGE_KEYS.settings
-        && readList(storageKey).some((appointment) => appointment.id === id)
-    );
+    const key = APPOINTMENT_LISTS.find((listKey) => readList(listKey).some((item) => item.id === id));
     if (!key) throw new Error('Appointment could not be found.');
 
-    writeValue(key, readList(key).map((appointment) =>
-        appointment.id === id ? { ...appointment, ...updates } : appointment
-    ));
+    writeValue(key, readList(key).map((item) => (item.id === id ? { ...item, ...updates } : item)));
 }
 
-// Listen for same-tab and cross-tab changes and return a cleanup function.
-export function subscribeToAppointments(onChange) {
-    const refresh = () => onChange();
-    window.addEventListener(APPOINTMENTS_CHANGED_EVENT, refresh);
-    window.addEventListener('storage', refresh);
-    return () => {
-        window.removeEventListener(APPOINTMENTS_CHANGED_EVENT, refresh);
-        window.removeEventListener('storage', refresh);
-    };
+// --- Working out which times are free ---
+
+function getRulesForDate(settings, date) {
+    return settings.dateRules.filter((rule) => rule.date === date);
 }
 
-// Apply date-specific closure/hour overrides before falling back to weekly hours.
-export function getDayHours(settings, date) {
-    const rules = settings.dateRules.filter((rule) => rule.date === date);
+// One day's opening hours, or null if closed. Date-specific rules beat the weekly schedule.
+function getDayHours(settings, date) {
+    const rules = getRulesForDate(settings, date);
     if (rules.some((rule) => rule.type === 'closed')) return null;
 
     const weeklyHours = settings.schedule[String(new Date(`${date}T12:00:00`).getDay())];
@@ -301,107 +200,90 @@ export function getDayHours(settings, date) {
     return weeklyHours?.enabled ? weeklyHours : null;
 }
 
-// Use half-open time ranges so adjacent appointments do not count as conflicts.
+// Do two time ranges overlap? One ending exactly when the other starts doesn't count.
 function overlaps(start, end, otherStart, otherEnd) {
     return start < otherEnd && otherStart < end;
 }
 
-// Compare a local date/time with the current time to hide past booking slots.
 function isStartInPast(date, time) {
     const [year, month, day] = date.split('-').map(Number);
     const [hour, minute] = time.split(':').map(Number);
     return new Date(year, month - 1, day, hour, minute).getTime() <= Date.now();
 }
 
-// Resolve an appointment duration from its saved value, service, or interval.
-function getAppointmentDuration(appointment, settings) {
-    return Number(
+// An appointment's start and end, in minutes after midnight.
+function getAppointmentRange(appointment, settings) {
+    const start = toMinutes(appointment.time);
+    const duration = Number(
         appointment.duration
         || settings.services[appointment.service]?.duration
         || settings.interval
     );
+    return [start, start + duration];
 }
 
-// Return start times that fit working hours and avoid breaks, blocks, and bookings.
+// Does this time range touch a break ({ start, end }) or a blocked-time rule?
+function overlapsPeriod(start, end, period) {
+    return overlaps(start, end, toMinutes(period.start), toMinutes(period.end));
+}
+
+// Start times on `date` where the service fits inside opening hours and clashes with nothing.
+// options: settings, service (name), duration (minutes), excludeId (an appointment to ignore).
 export function getAvailableSlots(appointments, date, options = {}) {
     const settings = options.settings ?? getBookingSettings();
     const service = options.service ? settings.services[options.service] : null;
     const duration = Number(options.duration ?? service?.duration);
-    if (
-        options.service
-        && ((!service?.active && options.duration === undefined) || !Number.isFinite(duration) || duration <= 0)
-    ) return [];
-    if (options.duration !== undefined && (!Number.isFinite(duration) || duration <= 0)) return [];
+    const durationIsInvalid = !Number.isFinite(duration) || duration <= 0;
+    const serviceIsOff = options.service && !service?.active && options.duration === undefined;
+    if (durationIsInvalid || serviceIsOff) return [];
 
     const hours = getDayHours(settings, date);
-    if (!hours || settings.dateRules.some((rule) => rule.date === date && rule.type === 'closed')) return [];
+    if (!hours) return [];
 
-    const opening = toMinutes(hours.open);
-    const closing = toMinutes(hours.close);
-    if (closing <= opening) return [];
-
-    const rules = settings.dateRules.filter((rule) => rule.date === date);
+    const blocks = getRulesForDate(settings, date).filter((rule) => rule.type === 'block');
+    const breaks = hours.breaks ?? [];
+    const otherAppointments = appointments.filter((item) =>
+        item.date === date && item.id !== options.excludeId && item.status !== 'cancelled'
+    );
     const interval = Number(settings.interval) || 30;
     const available = [];
 
-    for (let start = opening; start + duration <= closing; start += interval) {
+    // Try each possible start time and keep the ones with no clash.
+    for (let start = toMinutes(hours.open); start + duration <= toMinutes(hours.close); start += interval) {
         const end = start + duration;
-        const time = `${String(Math.floor(start / 60)).padStart(2, '0')}:${String(start % 60).padStart(2, '0')}`;
-        if (isStartInPast(date, time)) continue;
-
-        const duringBreak = (hours.breaks ?? []).some((breakTime) =>
-            overlaps(start, end, toMinutes(breakTime.start), toMinutes(breakTime.end))
-        );
-        const duringBlock = rules.some((rule) =>
-            rule.type === 'block'
-            && overlaps(start, end, toMinutes(rule.start), toMinutes(rule.end))
-        );
-        const appointmentConflict = appointments.some((appointment) => {
-            if (
-                appointment.date !== date
-                || appointment.id === options.excludeId
-                || appointment.status === 'cancelled'
-            ) return false;
-
-            const appointmentStart = toMinutes(appointment.time);
-            const appointmentEnd = appointmentStart + getAppointmentDuration(appointment, settings);
-            return overlaps(start, end, appointmentStart, appointmentEnd);
-        });
-
-        if (!duringBreak && !duringBlock && !appointmentConflict) available.push(time);
+        const time = minutesToTime(start);
+        const hasClash = isStartInPast(date, time)
+            || breaks.some((period) => overlapsPeriod(start, end, period))
+            || blocks.some((period) => overlapsPeriod(start, end, period))
+            || otherAppointments.some((item) => overlaps(start, end, ...getAppointmentRange(item, settings)));
+        if (!hasClash) available.push(time);
     }
     return available;
 }
 
-// Describe every calendar interval, including occupied, blocked, and past slots.
+// What's happening at every interval of a day. Used by the admin calendar's day view.
 export function getCalendarSlots(appointments, date, settings = getBookingSettings()) {
     const hours = getDayHours(settings, date);
     if (!hours) return [];
 
-    const rules = settings.dateRules.filter((rule) => rule.date === date);
-    const slots = [];
+    const blocks = getRulesForDate(settings, date).filter((rule) => rule.type === 'block');
+    const activeAppointments = appointments.filter((item) => item.date === date && item.status !== 'cancelled');
     const interval = Number(settings.interval) || 30;
-    const opening = toMinutes(hours.open);
     const closing = toMinutes(hours.close);
+    const slots = [];
 
-    for (let start = opening; start < closing; start += interval) {
+    for (let start = toMinutes(hours.open); start < closing; start += interval) {
         const end = Math.min(start + interval, closing);
-        const time = `${String(Math.floor(start / 60)).padStart(2, '0')}:${String(start % 60).padStart(2, '0')}`;
+        const time = minutesToTime(start);
         if (isStartInPast(date, time)) {
             slots.push({ time, status: 'past', appointment: null, label: '' });
             continue;
         }
-        const appointment = appointments.find((item) =>
-            item.date === date
-            && item.status !== 'cancelled'
-            && overlaps(start, end, toMinutes(item.time), toMinutes(item.time) + getAppointmentDuration(item, settings))
+        const appointment = activeAppointments.find((item) =>
+            overlaps(start, end, ...getAppointmentRange(item, settings))
         );
-        const breakTime = (hours.breaks ?? []).find((item) =>
-            overlaps(start, end, toMinutes(item.start), toMinutes(item.end))
-        );
-        const block = rules.find((rule) =>
-            rule.type === 'block' && overlaps(start, end, toMinutes(rule.start), toMinutes(rule.end))
-        );
+        const breakTime = (hours.breaks ?? []).find((period) => overlapsPeriod(start, end, period));
+        const block = blocks.find((period) => overlapsPeriod(start, end, period));
 
         slots.push({
             time,
@@ -414,27 +296,15 @@ export function getCalendarSlots(appointments, date, settings = getBookingSettin
     return slots;
 }
 
-// Find active appointments whose durations overlap on the same day.
+// The ids of appointments that overlap another appointment on the same day.
 export function findConflicts(appointments, settings = getBookingSettings()) {
-    const active = appointments.filter((appointment) => appointment.status !== 'cancelled');
-    return new Set(
-        active.filter((appointment, index) =>
-            active.some((other, otherIndex) =>
-                otherIndex !== index
-                && other.date === appointment.date
-                && overlaps(
-                    toMinutes(appointment.time),
-                    toMinutes(appointment.time) + getAppointmentDuration(appointment, settings),
-                    toMinutes(other.time),
-                    toMinutes(other.time) + getAppointmentDuration(other, settings)
-                )
-            )
-        ).map((appointment) => appointment.id)
+    const active = appointments.filter((item) => item.status !== 'cancelled');
+    const conflicting = active.filter((appointment, index) =>
+        active.some((other, otherIndex) =>
+            otherIndex !== index
+            && other.date === appointment.date
+            && overlaps(...getAppointmentRange(appointment, settings), ...getAppointmentRange(other, settings))
+        )
     );
-}
-
-// List upcoming dates that have at least one valid slot for a selected service.
-export function getBookableDates(appointments, settings, service, days = 90) {
-    return Array.from({ length: days }, (_, index) => dateAfterDays(index))
-        .filter((date) => getAvailableSlots(appointments, date, { settings, service }).length > 0);
+    return new Set(conflicting.map((item) => item.id));
 }

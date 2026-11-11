@@ -1,0 +1,281 @@
+/* Responsive layout overrides for the admin dashboard. */
+@media (max-width: 760px) {
+    .admin-page {
+        width: min(100% - 24px, 600px);
+        padding-top: 30px;
+    }
+
+    .admin-header,
+    .admin-panel-heading {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .admin-header-actions {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .admin-account-card {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .admin-account-card label {
+        min-width: 0;
+    }
+
+    .admin-summary {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .calendar-date-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .schedule-day,
+    .service-setting {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .schedule-breaks {
+        grid-column: 1 / -1;
+    }
+
+    .service-settings-list {
+        grid-template-columns: 1fr;
+    }
+
+    .date-rule-form {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .schedule-calendar-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .appointments-table {
+        min-width: 760px;
+    }
+}
+
+@media (max-width: 420px) {
+    .admin-form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-notes-field {
+        grid-column: auto;
+    }
+
+    .calendar-date-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .schedule-day,
+    .service-setting,
+    .date-rule-form {
+        grid-template-columns: 1fr;
+    }
+
+    .schedule-calendar-heading {
+        gap: 5px;
+    }
+
+    .schedule-calendar-day {
+        min-height: 42px;
+    }
+
+    .schedule-breaks {
+        grid-column: auto;
+    }
+}
+
+@media (max-width: 700px) {
+    .calendar-workspace {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .calendar-detail-panel {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .calendar-detail-heading,
+    .calendar-appointment-list,
+    .calendar-legend {
+        grid-column: 1 / -1;
+    }
+
+    .calendar-appointment-card {
+        grid-template-columns: auto minmax(0, 1fr) 24px;
+    }
+}
+
+@media (max-width: 640px) {
+    .admin-page {
+        width: 100%;
+        padding: 15px 12px 40px;
+    }
+
+    .admin-header {
+        flex-direction: row;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .admin-header-actions {
+        width: auto;
+    }
+
+    .admin-new-appointment {
+        min-height: 36px;
+        padding: 7px 10px;
+        font-size: 0.72rem;
+    }
+
+    .admin-summary {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .calendar-detail-panel {
+        grid-template-columns: 1fr;
+    }
+
+    .calendar-detail-heading,
+    .calendar-appointment-list,
+    .calendar-legend {
+        grid-column: auto;
+    }
+
+    .calendar-controls {
+        width: 100%;
+        flex-wrap: wrap;
+    }
+
+    .calendar-panel > .admin-panel-heading {
+        margin: 0 0 8px;
+    }
+
+    .calendar-date-grid.calendar-month .calendar-date-card {
+        min-height: 57px;
+    }
+}
+
+@media (max-width: 480px) {
+    .admin-header {
+        align-items: flex-start;
+    }
+
+    .admin-header h1 {
+        font-size: 1.28rem;
+    }
+
+    .admin-header-subtitle {
+        max-width: 200px;
+        font-size: 0.72rem;
+    }
+
+    .admin-new-appointment {
+        width: 38px;
+        min-width: 38px;
+        padding: 0;
+        overflow: hidden;
+        font-size: 0;
+    }
+
+    .admin-new-appointment svg {
+        flex: 0 0 auto;
+        width: 17px;
+        height: 17px;
+    }
+
+    .admin-security-notice {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-summary article {
+        min-height: 60px;
+        gap: 7px;
+        padding: 8px;
+    }
+
+    .admin-summary article > svg {
+        padding: 6px;
+        font-size: 0.85rem;
+    }
+
+    .admin-summary strong {
+        font-size: 1.05rem;
+    }
+
+    .calendar-controls {
+        gap: 6px;
+    }
+
+    .calendar-view-toggle button {
+        padding: 5px 7px;
+        font-size: 0.68rem;
+    }
+
+    .calendar-date-grid.calendar-month {
+        gap: 2px;
+    }
+
+    .calendar-date-grid.calendar-month .calendar-date-card {
+        min-height: 43px;
+        padding: 3px;
+    }
+
+    .calendar-date-grid.calendar-month .calendar-date-card > strong {
+        font-size: 0.65rem;
+    }
+
+    .calendar-mini-appointment,
+    .calendar-more-appointments,
+    .calendar-date-grid.calendar-month .calendar-appointment-count {
+        display: none;
+    }
+
+    .calendar-date-grid.calendar-month .calendar-date-card:has(.calendar-appointment-count)::after {
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: #c65e87;
+        content: '';
+    }
+
+    .calendar-open-slots.is-demo-slots {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (min-width: 641px) and (max-width: 760px) {
+    .admin-summary {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .admin-header {
+        align-items: center;
+        flex-direction: row;
+    }
+
+    .admin-header > div:first-child {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
+    .admin-header-actions {
+        width: auto;
+        flex: 0 0 auto;
+    }
+
+    .admin-header h1 {
+        font-size: 1.4rem;
+        white-space: nowrap;
+    }
+
+    .admin-page {
+        width: 100%;
+        padding: 18px 16px 42px;
+    }
+}

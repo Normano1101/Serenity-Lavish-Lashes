@@ -1,68 +1,70 @@
+// The portfolio gallery: one large photo that changes by itself, arrows, thumbnails, and a full-screen view.
 import { useCallback, useEffect, useRef, useState } from 'react';
 import portfolioPhotos from '../data/portfolioPhotos.js';
+import useSwipe from '../hooks/useSwipe.js';
 import PortfolioLightbox from './PortfolioLightbox.jsx';
 import PortfolioThumbnails from './PortfolioThumbnails.jsx';
 
-// Keep autoplay and thumbnail-pause timing consistent across effects.
-const AUTOPLAY_DELAY = 5000;
-const THUMBNAIL_PAUSE = 10000;
+const AUTOPLAY_DELAY = 5000; // Time between automatic photo changes.
+const THUMBNAIL_PAUSE = 10000; // Longer wait after a visitor picks a thumbnail.
+const FADE_TIME = 120; // Time for the old photo to fade before the new one appears.
 
-// Coordinate slideshow navigation, autoplay, thumbnail selection, and the lightbox.
 export default function PortfolioSlideshow() {
+    // selectedIndex is the photo chosen; displayedIndex catches up once the fade finishes.
     const [selectedIndex, setSelectedIndex] = useState(0);
     const [displayedIndex, setDisplayedIndex] = useState(0);
     const [isChanging, setIsChanging] = useState(false);
     const [lightboxOpen, setLightboxOpen] = useState(false);
     const [pauseUntil, setPauseUntil] = useState(0);
     const [pageVisible, setPageVisible] = useState(!document.hidden);
+    // Two blurred background layers take turns, so they can cross-fade smoothly.
     const [background, setBackground] = useState({
         photos: [portfolioPhotos[0], portfolioPhotos[0]],
         active: 0
     });
     const featuredButtonRef = useRef(null);
-    const swipeStartX = useRef(null);
-    const suppressClick = useRef(false);
-    const suppressClickTimer = useRef(null);
+    const ignoreNextClick = useRef(false);
+    const ignoreClickTimer = useRef(null);
 
-    // Normalize any requested index so navigation wraps through the photo list.
+    // The remainder (%) wraps around, so going past the last photo returns to the first.
     const showPhoto = useCallback((index) => {
         setSelectedIndex((index + portfolioPhotos.length) % portfolioPhotos.length);
     }, []);
 
-    const navigate = useCallback((direction) => {
+    const navigate = (direction) => {
         setPauseUntil(0);
         showPhoto(selectedIndex + direction);
-    }, [selectedIndex, showPhoto]);
+    };
 
-    // Delay the foreground image swap so its fade transition can run.
+    // Fade out the old photo, then swap in the new one.
     useEffect(() => {
         if (selectedIndex === displayedIndex) return undefined;
         setIsChanging(true);
         const timer = window.setTimeout(() => {
             setDisplayedIndex(selectedIndex);
             setIsChanging(false);
-        }, 120);
+        }, FADE_TIME);
         return () => window.clearTimeout(timer);
     }, [selectedIndex, displayedIndex]);
 
-    // Cross-fade two background layers without flashing the viewer.
+    // Load the new photo into the hidden background layer, then make that layer the active one.
     useEffect(() => {
         setBackground((current) => {
-            const nextBackground = 1 - current.active;
+            const nextLayer = 1 - current.active;
             const photos = [...current.photos];
-            photos[nextBackground] = portfolioPhotos[selectedIndex];
-            return { photos, active: nextBackground };
+            photos[nextLayer] = portfolioPhotos[selectedIndex];
+            return { photos, active: nextLayer };
         });
     }, [selectedIndex]);
 
-    // Stop autoplay timing while the visitor has switched to another browser tab.
+    // Notice when the visitor switches to another browser tab.
     useEffect(() => {
         const updateVisibility = () => setPageVisible(!document.hidden);
         document.addEventListener('visibilitychange', updateVisibility);
         return () => document.removeEventListener('visibilitychange', updateVisibility);
     }, []);
 
-    // Autoplay only when the lightbox is closed and the page is visible.
+    // Change photos automatically, unless the full-screen view is open or the tab is hidden.
     useEffect(() => {
         if (lightboxOpen || !pageVisible) return undefined;
         const delay = Math.max(AUTOPLAY_DELAY, pauseUntil - Date.now());
@@ -73,35 +75,36 @@ export default function PortfolioSlideshow() {
         return () => window.clearTimeout(timer);
     }, [lightboxOpen, pageVisible, pauseUntil, selectedIndex, showPhoto]);
 
-    // Return keyboard focus to the photo button after closing the dialog.
+    useEffect(() => () => window.clearTimeout(ignoreClickTimer.current), []);
+
+    // Put keyboard focus back on the photo after closing the full-screen view.
     const closeLightbox = useCallback(() => {
         setLightboxOpen(false);
         featuredButtonRef.current?.focus();
     }, []);
 
-    useEffect(() => () => window.clearTimeout(suppressClickTimer.current), []);
-    // Pause automatic changes briefly after a visitor chooses a thumbnail.
     const chooseThumbnail = (index) => {
         setPauseUntil(Date.now() + THUMBNAIL_PAUSE);
         showPhoto(index);
     };
 
-    const handleTouchStart = (event) => {
-        swipeStartX.current = event.changedTouches[0]?.clientX ?? null;
-    };
-
-    // Navigate on a swipe and suppress the synthetic tap that follows it.
-    const handleTouchEnd = (event) => {
-        if (swipeStartX.current === null) return;
-        const distance = event.changedTouches[0].clientX - swipeStartX.current;
-        swipeStartX.current = null;
-        if (Math.abs(distance) <= 50) return;
-        suppressClick.current = true;
-        window.clearTimeout(suppressClickTimer.current);
-        suppressClickTimer.current = window.setTimeout(() => {
-            suppressClick.current = false;
+    // Phones also send a "click" after a swipe. Ignore it so a swipe doesn't open the full-screen view.
+    const swipe = useSwipe((direction) => {
+        ignoreNextClick.current = true;
+        window.clearTimeout(ignoreClickTimer.current);
+        ignoreClickTimer.current = window.setTimeout(() => {
+            ignoreNextClick.current = false;
         }, 400);
-        navigate(distance > 0 ? -1 : 1);
+        navigate(direction);
+    });
+
+    const openLightbox = () => {
+        if (ignoreNextClick.current) {
+            ignoreNextClick.current = false;
+            return;
+        }
+        setPauseUntil(0);
+        setLightboxOpen(true);
     };
 
     return (
@@ -116,12 +119,7 @@ export default function PortfolioSlideshow() {
                             aria-hidden="true"
                         />
                     ))}
-                    <button
-                        className="portfolio-arrow portfolio-previous"
-                        type="button"
-                        aria-label="Previous photo"
-                        onClick={() => navigate(-1)}
-                    >
+                    <button className="portfolio-arrow portfolio-previous" type="button" aria-label="Previous photo" onClick={() => navigate(-1)}>
                         &#10094;
                     </button>
                     <button
@@ -129,16 +127,8 @@ export default function PortfolioSlideshow() {
                         type="button"
                         aria-label="Open enlarged portfolio photo"
                         ref={featuredButtonRef}
-                        onTouchStart={handleTouchStart}
-                        onTouchEnd={handleTouchEnd}
-                        onClick={() => {
-                            if (suppressClick.current) {
-                                suppressClick.current = false;
-                                return;
-                            }
-                            setPauseUntil(0);
-                            setLightboxOpen(true);
-                        }}
+                        onClick={openLightbox}
+                        {...swipe}
                     >
                         <img
                             className={`portfolio-featured-image${isChanging ? ' is-changing' : ''}`}
@@ -146,20 +136,11 @@ export default function PortfolioSlideshow() {
                             alt={`Lash portfolio photo ${selectedIndex + 1}`}
                         />
                     </button>
-                    <button
-                        className="portfolio-arrow portfolio-next"
-                        type="button"
-                        aria-label="Next photo"
-                        onClick={() => navigate(1)}
-                    >
+                    <button className="portfolio-arrow portfolio-next" type="button" aria-label="Next photo" onClick={() => navigate(1)}>
                         &#10095;
                     </button>
                 </div>
-                <PortfolioThumbnails
-                    photos={portfolioPhotos}
-                    selectedIndex={selectedIndex}
-                    onSelect={chooseThumbnail}
-                />
+                <PortfolioThumbnails photos={portfolioPhotos} selectedIndex={selectedIndex} onSelect={chooseThumbnail} />
             </section>
             {lightboxOpen && (
                 <PortfolioLightbox

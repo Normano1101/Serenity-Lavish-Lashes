@@ -1,9 +1,10 @@
+// Tracks who is signed in, so any page can call useAuth() to find out.
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { isSupabaseConfigured, supabase } from '../lib/supabase.js';
 
 const AuthContext = createContext(null);
 
-// Load the caller's role and display details from the profile table.
+// A user's role (owner, super_admin, ...) and name come from the profiles table.
 function getProfile(userId) {
     return supabase
         .from('profiles')
@@ -12,17 +13,17 @@ function getProfile(userId) {
         .maybeSingle();
 }
 
-// Keep the signed-in session and its admin profile available to the app.
 export function AuthProvider({ children }) {
     const [session, setSession] = useState(null);
     const [profile, setProfile] = useState(null);
     const [loading, setLoading] = useState(isSupabaseConfigured);
     const [error, setError] = useState('');
 
-    // Restore the saved session and follow future sign-in/sign-out changes.
+    // Restore a saved sign-in when the site opens, then follow later sign-ins and sign-outs.
     useEffect(() => {
         if (!supabase) return undefined;
 
+        // `mounted` stops late responses from updating state after this component is gone.
         let mounted = true;
         const loadProfile = async (userId) => {
             if (!userId) {
@@ -39,6 +40,7 @@ export function AuthProvider({ children }) {
             setSession(nextSession);
             setError('');
             setLoading(true);
+            // Supabase can freeze if it's called directly inside this callback, so wait a moment first.
             queueMicrotask(() => loadProfile(nextSession?.user?.id)
                 .finally(() => {
                     if (mounted) setLoading(false);
@@ -65,10 +67,9 @@ export function AuthProvider({ children }) {
         };
     }, []);
 
-    // Expose auth state and the supported account actions to child components.
+    // Everything useAuth() gives to the rest of the site.
     const value = useMemo(() => ({
         configured: isSupabaseConfigured,
-        session,
         user: session?.user ?? null,
         profile,
         loading,
@@ -81,19 +82,12 @@ export function AuthProvider({ children }) {
         async signOut() {
             const { error: signOutError } = await supabase.auth.signOut();
             if (signOutError) throw signOutError;
-        },
-        async refreshProfile() {
-            if (!session?.user?.id) return;
-            const { data, error: profileError } = await getProfile(session.user.id);
-            if (profileError) throw profileError;
-            setProfile(data);
         }
     }), [session, profile, loading, error]);
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
-// Read the shared auth context and fail clearly when used outside its provider.
 export function useAuth() {
     const context = useContext(AuthContext);
     if (!context) throw new Error('useAuth must be used inside AuthProvider.');

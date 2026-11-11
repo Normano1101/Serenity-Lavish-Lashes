@@ -1,19 +1,7 @@
 /* Styles for the gallery viewer, thumbnail strip, lightbox, and home slideshow. */
-.portfolio-intro {
-    max-width: 900px;
-    margin: 40px auto;
-    padding: 0 20px;
-    text-align: center;
-}
-
-.portfolio-intro h1,
-.portfolio-intro p {
-    text-align: center;
-}
-
 .portfolio-showcase {
-    width: min(1000px, calc(100% - 40px));
-    margin: 40px auto 56px;
+    width: min(1000px, 100%);
+    margin: 8px auto 56px;
 }
 
 .portfolio-viewer {
@@ -220,7 +208,7 @@ body.portfolio-lightbox-open {
 }
 
 .slider {
-    width: min(700px, 85vw);
+    width: min(700px, 100%);
     display: flex;
     justify-content: center;
     margin: 0 auto 40px;
@@ -266,8 +254,8 @@ body.portfolio-lightbox-open {
 
 @media (max-width: 600px) {
     .portfolio-showcase {
-        width: calc(100% - 28px);
-        margin: 28px auto 40px;
+        width: 100%;
+        margin: 8px auto 40px;
     }
 
     .portfolio-viewer {

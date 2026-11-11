@@ -1,8 +1,10 @@
+// Super admins only: see every account and choose what access each one has.
 import { useEffect, useState } from 'react';
 import { useAuth } from '../../auth/AuthProvider.jsx';
+import { ErrorMessage, SuccessMessage } from '../../components/Messages.jsx';
 import { supabase } from '../../lib/supabase.js';
+import PanelHeading from './PanelHeading.jsx';
 
-// Let super admins review profiles and assign roles through the protected database RPC.
 export default function AdminAccounts() {
     const { user } = useAuth();
     const [accounts, setAccounts] = useState([]);
@@ -11,7 +13,6 @@ export default function AdminAccounts() {
     const [message, setMessage] = useState('');
     const [error, setError] = useState('');
 
-    // Fetch profiles in email order for the role-management list.
     const loadAccounts = async () => {
         setLoading(true);
         setError('');
@@ -28,7 +29,6 @@ export default function AdminAccounts() {
         loadAccounts();
     }, []);
 
-    // Save a role change and reload the authoritative profile list.
     const changeRole = async (account, role) => {
         setSavingId(account.id);
         setError('');
@@ -48,15 +48,10 @@ export default function AdminAccounts() {
 
     return (
         <section className="admin-panel admin-accounts-panel">
-            <div className="admin-panel-heading">
-                <div>
-                    <p className="eyebrow">Super Admin only</p>
-                    <h2>Admin accounts</h2>
-                </div>
-            </div>
+            <PanelHeading eyebrow="Super Admin only" title="Admin accounts" />
             <p>Create user accounts in Supabase Authentication first. New users have no admin access until a Super Admin assigns a role here. Your own role cannot be changed from this screen.</p>
-            {error && <p className="form-message form-error" role="alert">{error}</p>}
-            {message && <p className="form-message form-success" role="status">{message}</p>}
+            <ErrorMessage>{error}</ErrorMessage>
+            <SuccessMessage>{message}</SuccessMessage>
             {loading ? <p role="status">Loading accounts…</p> : (
                 <div className="admin-account-list">
                     {accounts.map((account) => (

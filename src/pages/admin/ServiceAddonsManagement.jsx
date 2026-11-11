@@ -1,8 +1,14 @@
-import { useEffect, useState } from 'react';
+// The "Add-Ons" tab: create, edit and remove extras like spikes or color.
+// The public price list shows whichever add-ons are active here.
+import { useState } from 'react';
+import { ErrorMessage, SuccessMessage } from '../../components/Messages.jsx';
+import { MAX_SERVICE_PRICE, parseOptionalPrice } from '../../data/services.js';
+import useDrafts from '../../hooks/useDrafts.js';
 import useServiceAddons from '../../hooks/useServiceAddons.js';
 import { isSupabaseConfigured, supabase } from '../../lib/supabase.js';
+import PanelHeading from './PanelHeading.jsx';
 
-// Create an editable add-on record or a blank draft for a new add-on.
+// An editable copy of an add-on, or a blank one when no add-on is passed.
 function makeDraft(addon = null) {
     return {
         key: addon?.id ?? `new-addon-${crypto.randomUUID()}`,
@@ -14,53 +20,31 @@ function makeDraft(addon = null) {
     };
 }
 
-// Require a valid non-negative amount before saving an add-on.
-function parsePrice(value) {
-    if (value === '') return null;
-    const price = Number(value);
-    if (!Number.isFinite(price) || price < 0) {
-        throw new Error('Price must be a non-negative amount or left blank.');
-    }
-    return price;
+function addonsToDrafts(addons) {
+    return addons.map((addon) => makeDraft(addon));
 }
 
-// Manage the shared add-on names, descriptions, prices, and active states.
 export default function ServiceAddonsManagement() {
     const { addons, loading, error, refresh } = useServiceAddons({ includeInactive: true });
-    const [drafts, setDrafts] = useState([]);
-    const [dirtyIds, setDirtyIds] = useState(() => new Set());
-    const [savingId, setSavingId] = useState('');
+    const { drafts, addDraft, updateDraft: changeDraft, removeDraft } = useDrafts(addons, addonsToDrafts);
+    const [savingKey, setSavingKey] = useState('');
     const [message, setMessage] = useState('');
     const [formError, setFormError] = useState('');
 
-    // Merge refreshed add-ons without losing unsaved edits or new drafts.
-    useEffect(() => {
-        const savedDrafts = addons.map((addon) => makeDraft(addon));
-        setDrafts((current) => {
-            const currentById = new Map(current.map((draft) => [draft.key, draft]));
-            const refreshed = savedDrafts.map((draft) =>
-                dirtyIds.has(draft.key) ? currentById.get(draft.key) ?? draft : draft
-            );
-            const unsavedNew = current.filter((draft) =>
-                draft.id === null && dirtyIds.has(draft.key)
-            );
-            return [...refreshed, ...unsavedNew];
-        });
-    }, [addons, dirtyIds]);
-
-    // Update one add-on draft while retaining its other edited fields.
-    const updateDraft = (key, updates) => {
-        setDirtyIds((current) => new Set(current).add(key));
+    const clearMessages = () => {
         setMessage('');
         setFormError('');
-        setDrafts((current) => current.map((draft) => draft.key === key ? { ...draft, ...updates } : draft));
     };
 
-    // Validate and persist one add-on, reporting database errors to the admin.
+    const updateDraft = (key, updates) => {
+        clearMessages();
+        changeDraft(key, updates);
+    };
+
     const saveAddon = async (event, draft) => {
         event.preventDefault();
-        setMessage('');
-        setFormError('');
+        clearMessages();
+
         const name = draft.name.trim();
         if (!name || name.length > 100) {
             setFormError('Enter an add-on name between 1 and 100 characters.');
@@ -70,60 +54,42 @@ export default function ServiceAddonsManagement() {
             setFormError('Add-on descriptions must be 1000 characters or fewer.');
             return;
         }
-        if (!draft.isActive) {
-            const previous = addons.find((addon) => addon.id === draft.id);
-            if (previous?.is_active
-                && !window.confirm(`Deactivate ${name}? It will no longer appear to customers.`)) {
-                return;
-            }
+        const wasActive = addons.find((addon) => addon.id === draft.id)?.is_active;
+        if (!draft.isActive && wasActive && !window.confirm(`Deactivate ${name}? It will no longer appear to customers.`)) {
+            return;
         }
 
-        setSavingId(draft.key);
+        setSavingKey(draft.key);
         try {
             const values = {
                 name,
                 description: draft.description.trim(),
-                price: parsePrice(draft.price),
+                price: parseOptionalPrice(draft.price, 'Price'),
                 is_active: draft.isActive,
                 updated_at: new Date().toISOString()
             };
-            const result = draft.id
+            const { error: saveError } = draft.id
                 ? await supabase.from('service_addons').update(values).eq('id', draft.id)
                 : await supabase.from('service_addons').insert(values);
-            if (result.error) throw result.error;
+            if (saveError) throw saveError;
 
             setMessage(`${name} saved.`);
-            setDirtyIds((current) => {
-                const next = new Set(current);
-                next.delete(draft.key);
-                return next;
-            });
-            setDrafts((current) => current.filter((item) => item.key !== draft.key));
+            removeDraft(draft.key);
             await refresh();
         } catch (saveError) {
             setFormError(`Could not save ${name}: ${saveError.message}`);
         } finally {
-            setSavingId('');
+            setSavingKey('');
         }
     };
 
-    // Remove a saved add-on only after the admin confirms the action.
     const deleteAddon = async (draft) => {
         if (!draft.id || !window.confirm(`Permanently remove ${draft.name}?`)) return;
-        setMessage('');
-        setFormError('');
+        clearMessages();
         try {
-            const { error: deleteError } = await supabase
-                .from('service_addons')
-                .delete()
-                .eq('id', draft.id);
+            const { error: deleteError } = await supabase.from('service_addons').delete().eq('id', draft.id);
             if (deleteError) throw deleteError;
-            setDrafts((current) => current.filter((item) => item.key !== draft.key));
-            setDirtyIds((current) => {
-                const next = new Set(current);
-                next.delete(draft.key);
-                return next;
-            });
+            removeDraft(draft.key);
             setMessage(`${draft.name} removed.`);
             await refresh();
         } catch (deleteError) {
@@ -133,36 +99,28 @@ export default function ServiceAddonsManagement() {
 
     return (
         <section className="admin-panel service-management">
-            {/* The public price list reads the same active add-ons managed here. */}
-            <div className="admin-panel-heading">
-                <div>
-                    <p className="eyebrow">Optional service upgrades</p>
-                    <h2>Add-Ons</h2>
-                </div>
+            <PanelHeading eyebrow="Optional service upgrades" title="Add-Ons">
                 <button
                     type="button"
                     className="small-button"
                     disabled={!isSupabaseConfigured}
                     onClick={() => {
-                        const draft = makeDraft();
-                        setDrafts((current) => [...current, draft]);
-                        setDirtyIds((current) => new Set(current).add(draft.key));
-                        setMessage('');
-                        setFormError('');
+                        addDraft(makeDraft());
+                        clearMessages();
                     }}
                 >
                     Add add-on
                 </button>
-            </div>
+            </PanelHeading>
             {loading && <p role="status">Loading add-ons…</p>}
-            {error && <p className="form-message form-error" role="alert">{error}</p>}
-            {message && <p className="form-message form-success" role="status">{message}</p>}
-            {formError && <p className="form-message form-error" role="alert">{formError}</p>}
+            <ErrorMessage>{error}</ErrorMessage>
+            <SuccessMessage>{message}</SuccessMessage>
+            <ErrorMessage>{formError}</ErrorMessage>
             <div className="service-management-list">
-                {drafts.map((draft, index) => (
+                {drafts.map((draft) => (
                     <form
                         className={`service-management-card${draft.isActive ? '' : ' service-management-card-inactive'}`}
-                        key={draft.key || `addon-${index}`}
+                        key={draft.key}
                         onSubmit={(event) => saveAddon(event, draft)}
                     >
                         <div className="service-management-fields">
@@ -180,7 +138,9 @@ export default function ServiceAddonsManagement() {
                                 <input
                                     type="number"
                                     min="0"
+                                    max={MAX_SERVICE_PRICE}
                                     step="0.01"
+                                    inputMode="decimal"
                                     value={draft.price}
                                     placeholder="Price TBD"
                                     onChange={(event) => updateDraft(draft.key, { price: event.target.value })}
@@ -205,8 +165,8 @@ export default function ServiceAddonsManagement() {
                             Active
                         </label>
                         <div className="service-addon-actions">
-                            <button type="submit" className="btn service-save-button" disabled={!isSupabaseConfigured || savingId === draft.key}>
-                                {savingId === draft.key ? 'Saving…' : 'Save add-on'}
+                            <button type="submit" className="btn service-save-button" disabled={!isSupabaseConfigured || savingKey === draft.key}>
+                                {savingKey === draft.key ? 'Saving…' : 'Save add-on'}
                             </button>
                             {draft.id && (
                                 <button type="button" className="small-button" onClick={() => deleteAddon(draft)}>

@@ -1,17 +1,4 @@
-/* Layout for the home-page heading, booking link, and slideshow. */
+/* Space the home-page slideshow below the page header. */
 .hero {
-    min-height: 50vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 24px;
-    padding: 60px 20px 30px;
-    text-align: center;
-}
-
-.hero-content {
-    max-width: 800px;
-    margin: 0 auto;
-    text-align: center;
+    padding-top: 8px;
 }

@@ -1,0 +1,36 @@
+/* Responsive overrides for about and pricing pages. */
+@media (max-width: 768px) {
+    .about-page {
+        grid-template-columns: 1fr;
+        max-width: 560px;
+        gap: 28px;
+    }
+
+    .about-photo {
+        max-height: 560px;
+    }
+
+    .pricing-row,
+    .pricing-row:nth-child(even) {
+        flex-direction: column;
+    }
+
+    .pricing-images,
+    .pricing-card {
+        flex-basis: auto;
+        width: 100%;
+    }
+
+    .pricing-images {
+        min-height: 280px;
+        grid-auto-rows: minmax(140px, 1fr);
+    }
+
+    .pricing-images img {
+        min-height: 0;
+    }
+
+    .pricing-card h2 {
+        margin-bottom: 18px;
+    }
+}
