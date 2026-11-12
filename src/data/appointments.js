@@ -12,6 +12,10 @@ const STORAGE_KEYS = {
 const APPOINTMENT_LISTS = [STORAGE_KEYS.samples, STORAGE_KEYS.customer, STORAGE_KEYS.manual];
 const CHANGED_EVENT = 'serenity-demo-appointments-changed';
 
+// Appointments can start every 2 hours from opening time (9:00, 11:00, 1:00, ...).
+// This is fixed for the business, so the admin no longer chooses it.
+export const BOOKING_INTERVAL_MINUTES = 120;
+
 export const LASH_STYLES = ['Classic', 'Wet', 'Hybrid', 'Volume', 'Wispy', 'Anime'];
 // Every style comes as a full set and a fill: 'Classic Full Set', 'Classic Fill', ...
 export const SERVICES = LASH_STYLES.flatMap((style) => [`${style} Full Set`, `${style} Fill`]);
@@ -42,7 +46,7 @@ function createDefaultServices() {
 }
 
 function createDefaultSettings() {
-    return { schedule: DEFAULT_SCHEDULE, interval: 30, services: createDefaultServices(), dateRules: [] };
+    return { schedule: DEFAULT_SCHEDULE, interval: BOOKING_INTERVAL_MINUTES, services: createDefaultServices(), dateRules: [] };
 }
 
 // --- Reading and writing localStorage ---
@@ -245,7 +249,7 @@ export function getAvailableSlots(appointments, date, options = {}) {
     const otherAppointments = appointments.filter((item) =>
         item.date === date && item.id !== options.excludeId && item.status !== 'cancelled'
     );
-    const interval = Number(settings.interval) || 30;
+    const interval = BOOKING_INTERVAL_MINUTES;
     const available = [];
 
     // Try each possible start time and keep the ones with no clash.
@@ -268,7 +272,7 @@ export function getCalendarSlots(appointments, date, settings = getBookingSettin
 
     const blocks = getRulesForDate(settings, date).filter((rule) => rule.type === 'block');
     const activeAppointments = appointments.filter((item) => item.date === date && item.status !== 'cancelled');
-    const interval = Number(settings.interval) || 30;
+    const interval = BOOKING_INTERVAL_MINUTES;
     const closing = toMinutes(hours.close);
     const slots = [];
 

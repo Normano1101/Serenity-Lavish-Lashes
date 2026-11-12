@@ -1,22 +1,18 @@
 // The "Manage Schedule" panel: weekly hours and breaks, plus one-off date rules.
 import { useEffect, useState } from 'react';
 import { ErrorMessage, SuccessMessage } from '../../components/Messages.jsx';
-import { getBookingSettings, saveBookingSettings, subscribeToAppointments } from '../../data/appointments.js';
+import {
+    BOOKING_INTERVAL_MINUTES,
+    getBookingSettings,
+    saveBookingSettings,
+    subscribeToAppointments
+} from '../../data/appointments.js';
 import { loadBusinessSchedule, saveBusinessSchedule, validateSchedule } from '../../data/businessSchedule.js';
-import { getBrowserTimezone } from '../../data/dates.js';
+import { formatDuration, getBrowserTimezone } from '../../data/dates.js';
 import { isSupabaseConfigured } from '../../lib/supabase.js';
 import DateRulesManager from './DateRulesManager.jsx';
 import PanelHeading from './PanelHeading.jsx';
 import WeeklyScheduleEditor from './WeeklyScheduleEditor.jsx';
-
-const BOOKING_INTERVALS = [
-    { minutes: 15, label: '15 minutes' },
-    { minutes: 30, label: '30 minutes' },
-    { minutes: 45, label: '45 minutes' },
-    { minutes: 60, label: '1 hour' },
-    { minutes: 90, label: '1.5 hours' },
-    { minutes: 120, label: '2 hours' }
-];
 
 // Make a full copy, so editing the form can't change the saved settings by accident.
 function copySettings(settings) {
@@ -123,23 +119,13 @@ export default function ManageSchedule() {
             <PanelHeading
                 eyebrow={isSupabaseConfigured ? 'Shared scheduling settings' : 'Owner settings · Demo only'}
                 title="Manage Schedule"
-            >
-                <label className="schedule-interval">
-                    Booking interval
-                    <select
-                        value={settings.interval}
-                        onChange={(event) => setSettings((current) => ({ ...current, interval: Number(event.target.value) }))}
-                    >
-                        {BOOKING_INTERVALS.map(({ minutes, label }) => (
-                            <option value={minutes} key={minutes}>{label}</option>
-                        ))}
-                    </select>
-                </label>
-            </PanelHeading>
+            />
 
-            <ErrorMessage>{error}</ErrorMessage>
-            <SuccessMessage>{message}</SuccessMessage>
+            <p className="schedule-interval-note">
+                Appointments start every <strong>{formatDuration(BOOKING_INTERVAL_MINUTES)}</strong> from opening time.
+            </p>
 
+            {/* The Save button sits right under the hours it saves. Date rules below save on their own. */}
             <form onSubmit={saveSchedule}>
                 <WeeklyScheduleEditor
                     settings={settings}
@@ -149,12 +135,16 @@ export default function ManageSchedule() {
                     onServiceChange={updateService}
                 />
 
-                <DateRulesManager businessTimezone={businessTimezone} />
-
-                <button type="submit" className="btn booking-btn save-schedule-button" disabled={loading || saving}>
-                    {saving ? 'Saving schedule…' : 'Save Schedule'}
-                </button>
+                <div className="save-schedule-actions">
+                    <button type="submit" className="btn booking-btn save-schedule-button" disabled={loading || saving}>
+                        {saving ? 'Saving schedule…' : 'Save Schedule'}
+                    </button>
+                    <ErrorMessage>{error}</ErrorMessage>
+                    <SuccessMessage>{message}</SuccessMessage>
+                </div>
             </form>
+
+            <DateRulesManager businessTimezone={businessTimezone} />
         </section>
     );
 }

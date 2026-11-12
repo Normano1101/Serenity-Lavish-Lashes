@@ -11,13 +11,15 @@ async function addAppointment(page, name) {
     await dialog.getByLabel('Phone').fill('555-0101');
     await dialog.getByLabel('Service').selectOption({ index: 1 });
 
-    // Try the next few days until one has a free time.
+    // Try the next few days until one has at least three free times. With 2-hour steps and
+    // 3.5-hour demo appointments, short days have only one or two, and the reschedule step
+    // below needs another free time on the same day.
     const timeSelect = dialog.getByLabel('Available time');
     for (let days = 1; days <= 14; days += 1) {
         const date = new Date(Date.now() + days * 86_400_000);
         const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
         await dialog.getByLabel('Date').fill(key);
-        if (await timeSelect.locator('option:not([disabled])').count()) break;
+        if (await timeSelect.locator('option:not([disabled])').count() >= 3) break;
     }
     await timeSelect.selectOption({ index: 1 });
     await dialog.getByRole('button', { name: 'Add appointment' }).click();

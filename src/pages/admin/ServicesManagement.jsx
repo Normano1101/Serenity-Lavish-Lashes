@@ -31,6 +31,9 @@ const DURATION_FIELDS = [
     { key: 'refillDuration', label: 'Refill duration (minutes)', errorLabel: 'Refill duration' }
 ];
 
+// The standard appointment length. New lash sets, and sets saved without a duration, start here.
+const DEFAULT_DURATION_MINUTES = 90;
+
 function createDraft(fullService, fillService) {
     return {
         key: fullService?.id ?? `new-${crypto.randomUUID()}`,
@@ -41,8 +44,8 @@ function createDraft(fullService, fillService) {
         fullSetPrice: fullService?.price ?? '',
         refillTwoWeekPrice: fillService?.price ?? '',
         refillThreeWeekPrice: fillService?.refill_3_week_price ?? '',
-        fullSetDuration: fullService?.duration_minutes ?? '',
-        refillDuration: fillService?.duration_minutes ?? '',
+        fullSetDuration: fullService?.duration_minutes ?? DEFAULT_DURATION_MINUTES,
+        refillDuration: fillService?.duration_minutes ?? DEFAULT_DURATION_MINUTES,
         isActive: fullService?.is_active ?? true
     };
 }

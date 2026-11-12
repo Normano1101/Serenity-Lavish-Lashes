@@ -6,20 +6,10 @@
     line-height: 1.5;
 }
 
-.schedule-interval {
-    display: grid;
-    gap: 7px;
+/* The fixed booking interval, shown as a note under the panel title. */
+.schedule-interval-note {
+    margin-bottom: 14px;
     color: #493943;
-    font-weight: 700;
-}
-
-.schedule-interval select {
-    min-height: 42px;
-    padding: 8px 10px;
-    border: 1px solid #d9b5c4;
-    border-radius: 8px;
-    background: white;
-    font: inherit;
 }
 
 .schedule-day-list,
@@ -322,8 +312,16 @@
     background: #6d9f76;
 }
 
-.save-schedule-button {
-    margin-top: 22px;
+/* Save Schedule sits under the weekly hours, with its result message beside it. */
+.save-schedule-actions {
+    display: grid;
+    gap: 10px;
+    justify-items: start;
+    margin: 22px 0 28px;
+}
+
+.save-schedule-actions .form-message {
+    margin: 0;
 }
 
 .calendar-note {

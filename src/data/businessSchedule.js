@@ -1,6 +1,6 @@
 // Weekly opening hours: checking them and saving/loading them from the database.
 import { toMinutes, trimSeconds } from './dates.js';
-import { WEEKDAYS } from './appointments.js';
+import { BOOKING_INTERVAL_MINUTES, WEEKDAYS } from './appointments.js';
 import { supabase } from '../lib/supabase.js';
 
 // Returns a message describing the first problem, or '' when everything is valid.
@@ -32,10 +32,10 @@ export function validateSchedule(settings) {
     return '';
 }
 
-// Load the timezone, interval, hours and breaks, combined into one schedule per weekday.
+// Load the timezone, hours and breaks, combined into one schedule per weekday.
 export async function loadBusinessSchedule() {
     const [settingsResult, hoursResult, breaksResult] = await Promise.all([
-        supabase.from('booking_settings').select('business_timezone, booking_interval_minutes').eq('id', true).maybeSingle(),
+        supabase.from('booking_settings').select('business_timezone').eq('id', true).maybeSingle(),
         supabase.from('weekly_schedule').select('day_of_week, is_open, opens_at, closes_at'),
         supabase.from('schedule_breaks').select('id, day_of_week, starts_at, ends_at, label')
     ]);
@@ -58,7 +58,7 @@ export async function loadBusinessSchedule() {
 
     return {
         timezone: settingsResult.data?.business_timezone || 'UTC',
-        interval: Number(settingsResult.data?.booking_interval_minutes) || 30,
+        interval: BOOKING_INTERVAL_MINUTES,
         hasOpenHours: hours.some((day) => day.is_open),
         schedule
     };
@@ -85,7 +85,8 @@ export async function saveBusinessSchedule(settings) {
     );
 
     const { error } = await supabase.rpc('save_business_schedule', {
-        p_booking_interval_minutes: Number(settings.interval),
+        // Always save the fixed 2-hour interval, which also corrects any older saved value.
+        p_booking_interval_minutes: BOOKING_INTERVAL_MINUTES,
         p_weekly_schedule: weeklySchedule,
         p_schedule_breaks: scheduleBreaks
     });

@@ -15,6 +15,9 @@ This repository includes a Supabase Auth client, protected admin routes, a super
    - `migrations/20261012050000_restore_initial_lash_catalog.sql`
    - `migrations/20261012060000_date_rules_realtime.sql`
    - `migrations/20261012070000_save_business_schedule.sql`
+   - `migrations/20261112000000_standard_90_minute_durations.sql`
+   - `migrations/20261112010000_texas_business_timezone.sql`
+   - `migrations/20261112020000_two_hour_booking_interval.sql`
 4. Find the first account's immutable user UUID in **Authentication → Users**. In SQL Editor, promote only that verified account. Replace the email below with the exact email used to create the initial account:
 
    ```sql

@@ -14,10 +14,18 @@ export const supabase = isSupabaseConfigured
     })
     : null;
 
+// Each subscription gets its own number so channel names never repeat (see below).
+let nextSubscriptionId = 0;
+
 // Run onChange whenever a table changes in the database. Returns a function that stops listening.
 export function subscribeToTable({ channel, table, onChange, onUnavailable }) {
+    // Supabase hands back the SAME channel object when a name is reused, and adding a listener
+    // to a channel that is already running throws an error that blanks the whole page. Two
+    // components can load the same table at once (the Services panel and the appointment
+    // pop-up both list services), so every subscription gets a unique name.
+    nextSubscriptionId += 1;
     const subscription = supabase
-        .channel(channel)
+        .channel(`${channel}-${nextSubscriptionId}`)
         .on('postgres_changes', { event: '*', schema: 'public', table }, () => onChange())
         .subscribe((status) => {
             if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') onUnavailable();
